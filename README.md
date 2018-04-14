@@ -30,6 +30,26 @@ when it downloads a newer version of an image. Take runs on two occasions:
  * As a dependency of the systemd unit that uses the image, to provision a clean
    system with an initial image.
 
+## Usage
+
+Command-line interface:
+
+    # Initially fetch an image, but do nothing if any image exists already.
+    tako --if-not-exists /etc/tako/yourapp
+
+    # Check for, download, and apply available updates.
+    tako /etc/tako/yourapp
+
+    # Update multiple images at once.
+    tako /etc/tako/app-foo /etc/tako/app-bar
+
+Configuration file example:
+
+    Origin=https://images.example.com/app-foo
+    PublicKey=8+r5DKNN/cwI+h0oHxMtgdyND3S/5xDLHQu0hFUmq+g=
+    Destination=/var/lib/images/app-foo
+    RestartUnit=app-foo.service
+
 ## Building
 
     rustup target add x86_64-unknown-linux-musl
