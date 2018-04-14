@@ -1,0 +1,11 @@
+[package]
+name = "tako"
+version = "0.0.0"
+authors = [
+  "Arian van Putten <aeroboy94@gmail.com>",
+  "Ruud van Asseldonk <dev@veniogames.com>",
+  "Tako Marks <me@tako.mx>"
+]
+
+[dependencies]
+hyper-rustls = "0.12.0"

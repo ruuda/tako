@@ -1,0 +1,7 @@
+# Build output
+/target
+**/*.rs.bk
+
+# Editor files
+*.swp
+*.swo
