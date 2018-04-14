@@ -9,5 +9,9 @@ mod error;
 mod curl;
 
 fn main() {
-    println!("TODO: Curl wrapper.");
+    let mut curl_handle = curl::Handle::new();
+    curl_handle.download("https://hyper.rs", |chunk| {
+        io::stdout().write_all(chunk).unwrap();
+    });
+    println!("Done.");
 }
