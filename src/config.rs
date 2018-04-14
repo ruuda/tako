@@ -11,6 +11,7 @@ use hyper::Uri;
 
 use error::{Error, Result};
 
+#[derive(Debug)]
 struct Config {
     origin: Uri,
     public_key: [u8; 32],
@@ -104,6 +105,7 @@ impl Config {
 
 #[cfg(test)]
 mod test {
+    use std::path::Path;
     use super::Config;
 
     #[test]
@@ -113,9 +115,36 @@ mod test {
             "PublicKey=8+r5DKNN/cwI+h0oHxMtgdyND3S/5xDLHQu0hFUmq+g=",
             "Destination=/var/lib/images/app-foo",
         ];
-        let config_res = Config::parse(&config_lines);
-        assert!(config_res.is_ok());
-        // TODO: Assert contents.
+        let config = Config::parse(&config_lines).unwrap();
+        assert_eq!(config.origin.scheme(), Some("https"));
+        assert_eq!(config.origin.host(), Some("images.example.com"));
+        assert_eq!(config.origin.path(), "/app-foo");
+        assert_eq!(config.public_key[..4], [0xf3, 0xea, 0xf9, 0x0c]);
+        assert_eq!(config.destination.as_path(), Path::new("/var/lib/images/app-foo"));
     }
 
+    #[test]
+    pub fn config_with_1_restart_units_is_parsed() {
+        let config_lines = [
+            "Origin=https://images.example.com/app-foo",
+            "PublicKey=8+r5DKNN/cwI+h0oHxMtgdyND3S/5xDLHQu0hFUmq+g=",
+            "Destination=/var/lib/images/app-foo",
+            "RestartUnit=foo",
+        ];
+        let config = Config::parse(&config_lines).unwrap();
+        assert_eq!(&config.restart_units[..], &["foo"]);
+    }
+
+    #[test]
+    pub fn config_with_2_restart_units_is_parsed() {
+        let config_lines = [
+            "Origin=https://images.example.com/app-foo",
+            "PublicKey=8+r5DKNN/cwI+h0oHxMtgdyND3S/5xDLHQu0hFUmq+g=",
+            "Destination=/var/lib/images/app-foo",
+            "RestartUnit=foo",
+            "RestartUnit=bar",
+        ];
+        let config = Config::parse(&config_lines).unwrap();
+        assert_eq!(&config.restart_units[..], &["foo", "bar"]);
+    }
 }

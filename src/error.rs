@@ -9,6 +9,7 @@ use std::result;
 use base64;
 use hyper::error::UriError;
 
+#[derive(Debug)]
 pub enum Error {
     /// Error in config file on a given line.
     InvalidConfig(usize, &'static str),
