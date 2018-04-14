@@ -6,6 +6,7 @@
 use std::str::FromStr;
 use std::path::PathBuf;
 
+use base64;
 use hyper::Uri;
 
 use error::{Error, Result};
@@ -15,6 +16,23 @@ struct Config {
     public_key: [u8; 32],
     destination: PathBuf,
     restart_units: Vec<String>,
+}
+
+fn parse_public_key(lineno: usize, key_base64: &str) -> Result<[u8; 32]> {
+    let bytes = match base64::decode(key_base64) {
+        Ok(bs) => bs,
+        Err(err) => return Err(Error::InvalidPublicKey(lineno, err)),
+    };
+
+    if bytes.len() != 32 {
+        let msg = "Ed25519 public key is not 32 bytes (48 characters base64).";
+        return Err(Error::InvalidConfig(lineno, msg))
+    }
+
+    let mut result = [0_u8; 32];
+    result.copy_from_slice(&bytes[..]);
+
+    Ok(result)
 }
 
 impl Config {
@@ -45,7 +63,7 @@ impl Config {
                         }
                     }
                     "PublicKey" => {
-                        unimplemented!("TODO: Parse base64 key.");
+                        public_key = Some(parse_public_key(lineno, value)?);
                     }
                     "Destination" => {
                         destination = Some(PathBuf::from(value));

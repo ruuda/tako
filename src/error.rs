@@ -6,6 +6,7 @@
 use std::io;
 use std::result;
 
+use base64;
 use hyper::error::UriError;
 
 pub enum Error {
@@ -17,6 +18,9 @@ pub enum Error {
 
     /// A key is missing in the config.
     IncompleteConfig(&'static str),
+
+    /// Public key in config could not be parsed as base64.
+    InvalidPublicKey(usize, base64::DecodeError),
 
     /// IO error.
     IoError(io::Error),
