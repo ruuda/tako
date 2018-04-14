@@ -2,14 +2,18 @@
 
 Tako: take container image.
 
+Container runtimes are overrated. [Systemd can take care of the sandboxing
+part.][containers-systemd]. Tako takes care of versioned image acquisition
+and automatic updates.
+
 ## Goals
 
 Goals:
 
  * Securely downloading signed images.
  * Implement a versioning policy, to be able to download the latest compatible
-   version of an image. Automatic security updates, without installing new
-   versions with breaking changes.
+   version of an image. Automatic security updates, but not new versions with
+   breaking changes without manual intervention.
 
 Non-goals:
 
@@ -22,11 +26,11 @@ Non-goals:
 
 Tako is a short-lived process that downloads images specified in its
 configuration and then exits. Optionally Tako restarts configured systemd units
-when it downloads a newer version of an image. Take runs on two occasions:
+when it downloads a newer version of an image. Tako runs on two occasions:
 
- * Periodically, triggered by a systemd timer. Tako will poll for new compatible
-   versions of a configured image. If one exists, Tako downloads it and restarts
-   the systemd unit that uses the image.
+ * Periodically, triggered by a systemd timer. Tako will check for new
+   compatible versions of a configured image. If one exists, Tako downloads it
+   and restarts the systemd unit that uses the image.
  * As a dependency of the systemd unit that uses the image, to provision a clean
    system with an initial image.
 
@@ -63,14 +67,13 @@ The `RestartUnit=` key is optional.
 
 ## Building
 
-    rustup target add x86_64-unknown-linux-musl
     cargo build --release
-    target/x86_64-unknown-linux-musl/release/tako
+    target/release/tako --help
 
 ## Server
 
 A Tako server is a regular http server, with a particular directory layout. The
-origin uri points to a directory where we can find the manifest file, that lists
+origin uri points to a directory where we can find the manifest file that lists
 all available versions and their SHA256 digests. The manifest is signed.
 
 The manifest file is a text file, one image version per line (separated by
@@ -95,3 +98,6 @@ files there (`//` indicates the destination directory path).
 ## Future work
 
  * GC'ing the local store.
+ * Differential updates. (Bsdiff, Casync?)
+
+[containers-systemd]: https://media.ccc.de/v/ASG2017-101-containers_without_a_container_manager_with_systemd
