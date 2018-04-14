@@ -444,7 +444,10 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 name = "tako"
 version = "0.0.0"
 dependencies = [
+ "futures 0.1.21 (registry+https://github.com/rust-lang/crates.io-index)",
+ "hyper 0.11.25 (registry+https://github.com/rust-lang/crates.io-index)",
  "hyper-rustls 0.12.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "tokio-core 0.1.17 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
