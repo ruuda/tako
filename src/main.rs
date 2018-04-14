@@ -1,13 +1,17 @@
+extern crate futures;
 extern crate hyper;
 extern crate hyper_rustls;
 extern crate tokio_core;
-extern crate futures;
 
-use hyper::{Client, Uri};
-use futures::{Future, Stream};
-use tokio_core::reactor::Core;
-use std::io;
 use std::io::Write;
+use std::io;
+
+use futures::{Future, Stream};
+use hyper::{Client, Uri};
+use tokio_core::reactor::Core;
+
+mod config;
+mod error;
 
 fn download(core: &mut Core) -> Result<(), Box<::std::error::Error>> {
     let url = ("https://hyper.rs").parse().unwrap();

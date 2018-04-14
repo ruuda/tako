@@ -50,6 +50,17 @@ Configuration file example:
     Destination=/var/lib/images/app-foo
     RestartUnit=app-foo.service
 
+If multiple units share the same image, it is possible to specify multiple units
+to restart:
+
+    Origin=https://images.example.com/app-foo
+    PublicKey=8+r5DKNN/cwI+h0oHxMtgdyND3S/5xDLHQu0hFUmq+g=
+    Destination=/var/lib/images/app-foo
+    RestartUnit=app-foo.service
+    RestartUnit=app-bar.service
+
+The `RestartUnit=` key is optional.
+
 ## Building
 
     rustup target add x86_64-unknown-linux-musl
