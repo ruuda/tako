@@ -19,6 +19,25 @@ struct Config {
     restart_units: Vec<String>,
 }
 
+fn parse_origin(lineno: usize, uri_str: &str) -> Result<Uri> {
+    let uri = match Uri::from_str(uri_str) {
+        Ok(uri) => uri,
+        Err(err) => return Err(Error::InvalidUri(lineno, err)),
+    };
+
+    if uri.scheme() != Some("https") {
+        let msg = "Origin must be an https uri.";
+        return Err(Error::InvalidConfig(lineno, msg));
+    }
+
+    if uri.host().is_none() {
+        let msg = "Origin uri must include a host.";
+        return Err(Error::InvalidConfig(lineno, msg));
+    }
+
+    Ok(uri)
+}
+
 fn parse_public_key(lineno: usize, key_base64: &str) -> Result<[u8; 32]> {
     let bytes = match base64::decode(key_base64) {
         Ok(bs) => bs,
@@ -37,7 +56,7 @@ fn parse_public_key(lineno: usize, key_base64: &str) -> Result<[u8; 32]> {
 }
 
 impl Config {
-    pub fn parse<'a, I, S>(mut lines: I) -> Result<Config>
+    pub fn parse<'a, I, S>(lines: I) -> Result<Config>
     where I: IntoIterator<Item = S>,
           S: AsRef<str> {
         let mut origin = None;
@@ -58,10 +77,7 @@ impl Config {
                 let value = &line[n + 1..];
                 match key {
                     "Origin" => {
-                        match Uri::from_str(value) {
-                            Ok(uri) => origin = Some(uri),
-                            Err(err) => return Err(Error::InvalidUri(lineno, err)),
-                        }
+                        origin = Some(parse_origin(lineno, value)?);
                     }
                     "PublicKey" => {
                         public_key = Some(parse_public_key(lineno, value)?);
@@ -147,4 +163,6 @@ mod test {
         let config = Config::parse(&config_lines).unwrap();
         assert_eq!(&config.restart_units[..], &["foo", "bar"]);
     }
+
+    // TODO: Test error cases.
 }
