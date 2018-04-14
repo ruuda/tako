@@ -18,14 +18,17 @@ struct Config {
 }
 
 impl Config {
-    pub fn parse<'a, I>(mut lines: I) -> Result<Config>
-    where I: Iterator<Item = &'a str> {
+    pub fn parse<'a, I, S>(mut lines: I) -> Result<Config>
+    where I: IntoIterator<Item = S>,
+          S: AsRef<str> {
         let mut origin = None;
         let mut public_key = None;
         let mut destination = None;
         let mut restart_units = Vec::new();
 
-        for (lineno, line) in lines.enumerate() {
+        for (lineno, line_raw) in lines.into_iter().enumerate() {
+            let line = line_raw.as_ref();
+
             // Allow empty lines in the config file.
             if line.len() == 0 {
                 continue
@@ -79,4 +82,22 @@ impl Config {
 
         Ok(config)
     }
+}
+
+#[cfg(test)]
+mod test {
+    use super::Config;
+
+    #[test]
+    pub fn config_with_0_restart_units_is_parsed() {
+        let config_lines = [
+            "Origin=https://images.example.com/app-foo",
+            "PublicKey=8+r5DKNN/cwI+h0oHxMtgdyND3S/5xDLHQu0hFUmq+g=",
+            "Destination=/var/lib/images/app-foo",
+        ];
+        let config_res = Config::parse(&config_lines);
+        assert!(config_res.is_ok());
+        // TODO: Assert contents.
+    }
+
 }
