@@ -28,6 +28,9 @@ pub enum Error {
     /// Signature verification failed.
     InvalidSignature,
 
+    /// Curl failed in some way.
+    DownloadError(String),
+
     /// IO error.
     IoError(io::Error),
 }
