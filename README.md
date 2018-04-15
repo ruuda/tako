@@ -3,7 +3,7 @@
 Tako: take container image.
 
 Container runtimes are overrated. [Systemd can take care of the sandboxing
-part.][containers-systemd]. Tako takes care of versioned image acquisition
+part][containers-systemd]. Tako takes care of versioned image acquisition
 and automatic updates.
 
 ## Goals
