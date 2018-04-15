@@ -38,6 +38,11 @@ pub fn print_usage() {
     print!("{}", USAGE);
 }
 
+pub fn print_version() {
+    println!("0.0.0");
+    // TODO: Licenses and stuff.
+}
+
 pub fn parse() -> Result<Cmd, String> {
     let mut args = env::args();
 
