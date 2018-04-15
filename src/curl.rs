@@ -75,7 +75,7 @@ impl Handle {
         // Curl can fill a buffer with a message in the case of an error. It
         // writes a C string to a buffer of size at least 256.
         assert_eq!(mem::size_of::<u8>(), mem::size_of::<raw::c_char>());
-        let mut error_buffer = [0 as raw::c_char; 256];
+        let error_buffer = [0 as raw::c_char; 256];
 
         unsafe {
             // Follow redirects, if the server redirects us.

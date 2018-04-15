@@ -3,7 +3,6 @@
 
 //! Configuration file parser.
 
-use std::str::FromStr;
 use std::path::PathBuf;
 
 use base64;

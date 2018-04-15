@@ -54,7 +54,7 @@ pub fn parse() -> Result<Cmd, String> {
     }
 }
 
-fn parse_fetch(mut args: Args) -> Result<Cmd, String> {
+fn parse_fetch(args: Args) -> Result<Cmd, String> {
     let mut fnames = Vec::new();
     let mut is_init = false;
     let mut is_raw = false;
@@ -89,11 +89,11 @@ fn parse_fetch(mut args: Args) -> Result<Cmd, String> {
     }
 }
 
-fn parse_store(mut args: Args) -> Result<Cmd, String> {
+fn parse_store(_args: Args) -> Result<Cmd, String> {
     unimplemented!();
 }
 
-fn drain(mut args: Args) -> Result<(), String> {
+fn drain(args: Args) -> Result<(), String> {
     for arg in args {
         return unexpected::<()>(&arg);
     }
