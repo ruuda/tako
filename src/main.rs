@@ -10,10 +10,11 @@ use std::io::Write;
 use std::io;
 use std::process;
 
-mod config;
-mod error;
-mod curl;
 mod cli;
+mod config;
+mod curl;
+mod error;
+mod manifest;
 
 fn run_init(config_fname: &String) {
     println!("Run for {}.", config_fname);

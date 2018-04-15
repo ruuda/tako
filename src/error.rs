@@ -17,7 +17,16 @@ pub enum Error {
     IncompleteConfig(&'static str),
 
     /// Public key in config could not be parsed as base64.
-    InvalidPublicKey(usize, base64::DecodeError),
+    InvalidPublicKeyData(usize, base64::DecodeError),
+
+    /// Error in manifest file.
+    InvalidManifest(&'static str),
+
+    /// Signature in manifest could not be parsed as base64.
+    InvalidSignatureData(base64::DecodeError),
+
+    /// Signature verification failed.
+    InvalidSignature,
 
     /// IO error.
     IoError(io::Error),

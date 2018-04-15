@@ -20,11 +20,11 @@ struct Config {
 fn parse_public_key(lineno: usize, key_base64: &str) -> Result<[u8; 32]> {
     let bytes = match base64::decode(key_base64) {
         Ok(bs) => bs,
-        Err(err) => return Err(Error::InvalidPublicKey(lineno, err)),
+        Err(err) => return Err(Error::InvalidPublicKeyData(lineno, err)),
     };
 
     if bytes.len() != 32 {
-        let msg = "Ed25519 public key is not 32 bytes (48 characters base64).";
+        let msg = "Ed25519 public key is not 32 bytes (44 characters base64).";
         return Err(Error::InvalidConfig(lineno, msg))
     }
 
