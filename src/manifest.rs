@@ -108,6 +108,8 @@ fn parse_signature(sig_base64: &[u8]) -> Result<[u8; 64]> {
 }
 
 impl Manifest {
+    // TODO: Should also take a public key (newtype wrapper around [u8; 32],
+    // and do verification in one go).
     pub fn parse(bytes: &[u8]) -> Result<Manifest> {
         let mut lines = bytes.split(|b| *b == b'\n');
         let mut entries = Vec::new();
@@ -157,6 +159,27 @@ impl Manifest {
         };
 
         Ok(manifest)
+    }
+
+    /// Return whether all entries of self also occur in other.
+    pub fn is_subset_of(&self, other: &Manifest) -> bool {
+        let mut entries_other = other.entries.iter();
+
+        // Because we assume that entries in the manifest are sorted, we can do
+        // a mergesort-like check for subset: all the entries in self.entries
+        // should eventually occur in other.entries. The other manifest can have
+        // more, but then we just skip over them.
+        for entry in &self.entries {
+            loop {
+                match entries_other.next() {
+                    Some(ref e) if *e == entry => break,
+                    Some(..) => continue,
+                    None => return false,
+                }
+            }
+        }
+
+        true
     }
 }
 

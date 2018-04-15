@@ -28,6 +28,9 @@ pub enum Error {
     /// Signature verification failed.
     InvalidSignature,
 
+    /// An operational error occurred.
+    OperationError(&'static str),
+
     /// Curl failed in some way.
     DownloadError(String),
 
