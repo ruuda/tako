@@ -75,16 +75,7 @@ The `RestartUnit=` key is optional.
 A Tako server is a regular http server, with a particular directory layout. The
 origin uri points to a directory where we can find the manifest file that lists
 all available versions and their SHA256 digests. The manifest is signed.
-
-The manifest file is a text file, one image version per line (separated by
-`\n`). Every line contains the version number, a space, and then the SHA256
-of the image (encoded hexadecimally). The first line contains the base64-encoded
-Ed25519 signature of the remainder of the file (newline not included).
-
-    fQK92C/tPnH0uqxrTEnU+LEE4jnSpQPbOItph4kGAEfWEmn6wPXiQsSdXlDmoneaJkG6KLvInTvB7FlELoeQFg==
-    1.0.0 b101acf3c4870594bb4363090d5ab966c193fb329e2f2db2096708e08c4913e2
-    1.1.0 9641a49d02e90cbb6213f202fb632da70cdc59073d42283cfcdc1d786454f17f
-    2.0.0 b7b01c6f6772529c66b945e559cb1f46546ef62063e44c1d1068725157ae1cda
+See also [Manifest Format](docs/manifest-format.md) in the docs.
 
 ## Local Store
 
