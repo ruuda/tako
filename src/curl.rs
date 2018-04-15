@@ -6,7 +6,7 @@
 use std::mem;
 use std::os::raw;
 use std::slice;
-use std::ffi::CString;
+use std::ffi::{CStr, CString};
 
 enum Curl {}
 
@@ -18,6 +18,7 @@ const CURLOPT_MAXREDIRS: CurlOption = 68;
 const CURLOPT_HTTP_VERSION: CurlOption = 84;
 const CURLOPT_TCP_FASTOPEN: CurlOption = 244;
 const CURLOPT_WRITEDATA: CurlOption = 10_001;
+const CURLOPT_ERRORBUFFER: CurlOption = 10_010;
 const CURLOPT_URL: CurlOption = 10_002;
 const CURLOPT_WRITEFUNCTION: CurlOption = 20_011;
 
@@ -58,7 +59,7 @@ impl Handle {
         }
     }
 
-    pub fn download<F>(&mut self, uri: &str, on_data: F) -> Result<(), ()> where F: 'static + FnMut(&[u8]) {
+    pub fn download<F>(&mut self, uri: &str, on_data: F) -> Result<(), String> where F: 'static + FnMut(&[u8]) {
         // Box the handler, so we have a function to pass as userdata. We need
         // to box the handler, and then we pass a pointer to *this box on the
         // stack* as userdata. We cannot directly pass on_data as userdata,
@@ -66,9 +67,16 @@ impl Handle {
         // pass the box itself, because the box might be larger than a pointer.
         // So pass a pointer to the box.
         let mut handler: Handler = Box::new(on_data);
+
         // TODO: Handle the error case (a null in the uri) better. For instance
         // by validating uris in the config parser.
         let uri_cstr = CString::new(uri).unwrap();
+
+        // Curl can fill a buffer with a message in the case of an error. It
+        // writes a C string to a buffer of size at least 256.
+        assert_eq!(mem::size_of::<u8>(), mem::size_of::<raw::c_char>());
+        let mut error_buffer = [0 as raw::c_char; 256];
+
         unsafe {
             // Follow redirects, if the server redirects us.
             assert_eq!(curl_easy_setopt(self.curl, CURLOPT_FOLLOWLOCATION, 1 as raw::c_long), 0);
@@ -82,17 +90,20 @@ impl Handle {
 
             let userdata: *mut raw::c_void = mem::transmute(&mut handler);
 
-            // According to the documentation, these two calls always return
+            // According to the documentation, these calls always return
             // CURLE_OK (zero). Hence there is no point in checking the return
             // value.
             curl_easy_setopt(self.curl, CURLOPT_WRITEFUNCTION, write_callback as WriteCallback);
             curl_easy_setopt(self.curl, CURLOPT_WRITEDATA, userdata);
+            curl_easy_setopt(self.curl, CURLOPT_ERRORBUFFER, error_buffer.as_ptr());
 
             curl_easy_setopt(self.curl, CURLOPT_URL, uri_cstr.as_ptr());
 
-            // TODO: Don't assert, actually extract a friendly error message and
-            // propagate it.
-            assert_eq!(curl_easy_perform(self.curl), 0);
+            if curl_easy_perform(self.curl) != 0 {
+                // Error. There should be something in the buffer.
+                let msg = CStr::from_ptr(error_buffer.as_ptr());
+                return Err(msg.to_string_lossy().into_owned());
+            }
         }
 
         Ok(())

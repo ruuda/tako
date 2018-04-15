@@ -12,6 +12,6 @@ fn main() {
     let mut curl_handle = curl::Handle::new();
     curl_handle.download("https://hyper.rs", |chunk| {
         io::stdout().write_all(chunk).unwrap();
-    });
+    }).unwrap();
     println!("Done.");
 }
