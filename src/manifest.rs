@@ -8,6 +8,7 @@ use base64;
 use error::{Error, Result};
 use std::str;
 
+#[derive(Debug, Eq, PartialEq)]
 pub struct Entry {
     pub version: String,
     pub sha256: [u8; 32],

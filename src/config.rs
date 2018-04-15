@@ -10,11 +10,11 @@ use base64;
 use error::{Error, Result};
 
 #[derive(Debug)]
-struct Config {
-    origin: String,
-    public_key: [u8; 32],
-    destination: PathBuf,
-    restart_units: Vec<String>,
+pub struct Config {
+    pub origin: String,
+    pub public_key: [u8; 32],
+    pub destination: PathBuf,
+    pub restart_units: Vec<String>,
 }
 
 fn parse_public_key(lineno: usize, key_base64: &str) -> Result<[u8; 32]> {

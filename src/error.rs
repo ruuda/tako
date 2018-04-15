@@ -35,6 +35,12 @@ pub enum Error {
     IoError(io::Error),
 }
 
+impl From<io::Error> for Error {
+    fn from(err: io::Error) -> Error {
+        Error::IoError(err)
+    }
+}
+
 pub type Result<T> = result::Result<T, Error>;
 
 // TODO: Implement std::error::Error for Error.
