@@ -7,35 +7,15 @@ use std::str::FromStr;
 use std::path::PathBuf;
 
 use base64;
-use hyper::Uri;
 
 use error::{Error, Result};
 
 #[derive(Debug)]
 struct Config {
-    origin: Uri,
+    origin: String,
     public_key: [u8; 32],
     destination: PathBuf,
     restart_units: Vec<String>,
-}
-
-fn parse_origin(lineno: usize, uri_str: &str) -> Result<Uri> {
-    let uri = match Uri::from_str(uri_str) {
-        Ok(uri) => uri,
-        Err(err) => return Err(Error::InvalidUri(lineno, err)),
-    };
-
-    if uri.scheme() != Some("https") {
-        let msg = "Origin must be an https uri.";
-        return Err(Error::InvalidConfig(lineno, msg));
-    }
-
-    if uri.host().is_none() {
-        let msg = "Origin uri must include a host.";
-        return Err(Error::InvalidConfig(lineno, msg));
-    }
-
-    Ok(uri)
 }
 
 fn parse_public_key(lineno: usize, key_base64: &str) -> Result<[u8; 32]> {
@@ -77,7 +57,7 @@ impl Config {
                 let value = &line[n + 1..];
                 match key {
                     "Origin" => {
-                        origin = Some(parse_origin(lineno, value)?);
+                        origin = Some(String::from(value));
                     }
                     "PublicKey" => {
                         public_key = Some(parse_public_key(lineno, value)?);
@@ -132,9 +112,7 @@ mod test {
             "Destination=/var/lib/images/app-foo",
         ];
         let config = Config::parse(&config_lines).unwrap();
-        assert_eq!(config.origin.scheme(), Some("https"));
-        assert_eq!(config.origin.host(), Some("images.example.com"));
-        assert_eq!(config.origin.path(), "/app-foo");
+        assert_eq!(&config.origin[..], "https://images.example.com/app-foo");
         assert_eq!(config.public_key[..4], [0xf3, 0xea, 0xf9, 0x0c]);
         assert_eq!(config.destination.as_path(), Path::new("/var/lib/images/app-foo"));
     }

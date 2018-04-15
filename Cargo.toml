@@ -9,5 +9,4 @@ authors = [
 
 [dependencies]
 base64 = "0.9.0"
-hyper  = "0.11.25"
 ring   = "0.13.0-alpha"

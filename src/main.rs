@@ -1,5 +1,4 @@
 extern crate base64;
-extern crate hyper;
 
 use std::io::Write;
 use std::io;
