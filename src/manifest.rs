@@ -178,10 +178,32 @@ mod test {
 
     #[test]
     fn parse_rejects_unknown_version() {
-        let manifest = b"Tako Manifest 1.1\n\nWrong!\n";
-        match Manifest::parse(&manifest[..]) {
+        let raw = b"Tako Manifest 1.1\n\nWrong!\n";
+        match Manifest::parse(&raw[..]) {
             Err(Error::InvalidManifest(..)) => { /* This is expected. */ },
             _ => panic!("Manifest should be rejected."),
         }
     }
+
+    #[test]
+    fn parse_parses_single_entry_manifest() {
+        let raw = b"Tako Manifest 1\n\n\
+            1.0.0 b101acf3c4870594bb4363090d5ab966c193fb329e2f2db2096708e08c4913e2\n\n\
+            fQK92C/tPnH0uqxrTEnU+LEE4jnSpQPbOItph4kGAEfWEmn6wPXiQsSdXlDmoneaJkG6KLvInTvB7FlELoeQFg==\n";
+        let manifest = Manifest::parse(&raw[..]).unwrap();
+        assert_eq!(manifest.entries.len(), 1);
+    }
+
+    #[test]
+    fn parse_parses_double_entry_manifest() {
+        let raw = b"Tako Manifest 1\n\n\
+            1.0.0 b101acf3c4870594bb4363090d5ab966c193fb329e2f2db2096708e08c4913e2\n\
+            2.0.0 b7b01c6f6772529c66b945e559cb1f46546ef62063e44c1d1068725157ae1cda\n\n\
+            fQK92C/tPnH0uqxrTEnU+LEE4jnSpQPbOItph4kGAEfWEmn6wPXiQsSdXlDmoneaJkG6KLvInTvB7FlELoeQFg==\n";
+        let manifest = Manifest::parse(&raw[..]).unwrap();
+        assert_eq!(manifest.entries.len(), 2);
+    }
+
+    // TODO: Add fuzzer for manifest parser. It is quite straightforward to do
+    // so with cargo-fuzz.
 }
