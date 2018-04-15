@@ -51,6 +51,12 @@ impl Config {
                 continue
             }
 
+            // Skip lines starting with '#' or ';' to allow comments. This is
+            // consistent with systemd's comment syntax.
+            if line.starts_with("#") || line.starts_with(";") {
+                continue
+            }
+
             if let Some(n) = line.find('=') {
                 let key = &line[..n];
                 let value = &line[n + 1..];
@@ -139,6 +145,18 @@ mod test {
         ];
         let config = Config::parse(&config_lines).unwrap();
         assert_eq!(&config.restart_units[..], &["foo", "bar"]);
+    }
+
+    #[test]
+    pub fn parse_skips_comments() {
+        let config_lines = [
+            "Origin=https://images.example.com/app-foo",
+            "# This is a comment.",
+            "PublicKey=8+r5DKNN/cwI+h0oHxMtgdyND3S/5xDLHQu0hFUmq+g=",
+            "; This is also a comment.",
+            "Destination=/var/lib/images/app-foo",
+        ];
+        assert!(Config::parse(&config_lines).is_ok());
     }
 
     // TODO: Test error cases.
