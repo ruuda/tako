@@ -3,11 +3,15 @@
 
 //! Manifest file parser.
 
-use base64;
-use ring::signature::Ed25519KeyPair;
-
-use error::{Error, Result};
 use std::str;
+
+use base64;
+use ring::signature;
+use ring::signature::Ed25519KeyPair;
+use untrusted::Input;
+
+use config::PublicKey;
+use error::{Error, Result};
 
 #[derive(Debug, Eq, PartialEq)]
 pub struct Entry {
@@ -121,9 +125,7 @@ fn parse_signature(sig_base64: &[u8]) -> Result<[u8; 64]> {
 }
 
 impl Manifest {
-    // TODO: Should also take a public key (newtype wrapper around [u8; 32],
-    // and do verification in one go).
-    pub fn parse(bytes: &[u8]) -> Result<Manifest> {
+    pub fn parse(bytes: &[u8], public_key: &PublicKey) -> Result<Manifest> {
         let mut lines = bytes.split(|b| *b == b'\n');
         let mut entries = Vec::new();
 
@@ -153,7 +155,7 @@ impl Manifest {
 
         let err_trunc = Error::InvalidManifest("Unexpected end of manifest.");
         let signature_line = lines.next().ok_or(err_trunc)?;
-        let signature = parse_signature(signature_line)?;
+        let signature_bytes = parse_signature(signature_line)?;
 
         // We expect the file to end with a trailing newline, and nothing after
         // that.
@@ -164,6 +166,16 @@ impl Manifest {
         if lines.next() != None {
             let msg = "Unexpected trailing data after manifest.";
             return Err(Error::InvalidManifest(msg))
+        }
+
+        // The signature and newline are 89 bytes. Everything before that is
+        // included in the signature.
+        let message = Input::from(&bytes[..bytes.len() - 89]);
+        let pub_key = public_key.as_input();
+        let sig = Input::from(&signature_bytes);
+
+        if signature::verify(&signature::ED25519, pub_key, message, sig).is_err() {
+            return Err(Error::InvalidSignature)
         }
 
         let manifest = Manifest {

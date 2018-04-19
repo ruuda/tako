@@ -33,7 +33,7 @@ fn load_local_manifest(config: &Config) -> Result<Option<Manifest>> {
     let mut manifest_bytes = Vec::new();
     buf_reader.read_to_end(&mut manifest_bytes)?;
 
-    Ok(Some(Manifest::parse(&manifest_bytes[..])?))
+    Ok(Some(Manifest::parse(&manifest_bytes[..], &config.public_key)?))
 }
 
 /// Store a manifest locally. Writes first and then swaps the file.
@@ -76,7 +76,7 @@ pub fn fetch(config_fname: &str) -> Result<()> {
     let mut manifest_bytes = Vec::new();
     curl_handle.download(&uri, |chunk| manifest_bytes.extend_from_slice(chunk))?;
 
-    let remote_manifest = Manifest::parse(&manifest_bytes[..])?;
+    let remote_manifest = Manifest::parse(&manifest_bytes[..], &config.public_key)?;
 
     // If there was a local manifest already, it must be a subset of the remote
     // one. Otherwise, if we overwrite the local manifest, that would remove

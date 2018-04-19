@@ -6,13 +6,23 @@
 use std::path::PathBuf;
 
 use base64;
+use untrusted::Input;
 
 use error::{Error, Result};
 
 #[derive(Debug)]
+pub struct PublicKey([u8; 32]);
+
+impl PublicKey {
+    pub fn as_input(&self) -> Input {
+        Input::from(&self.0)
+    }
+}
+
+#[derive(Debug)]
 pub struct Config {
     pub origin: String,
-    pub public_key: [u8; 32],
+    pub public_key: PublicKey,
     pub destination: PathBuf,
     pub restart_units: Vec<String>,
 }
@@ -90,7 +100,7 @@ impl Config {
                 None => return Err(Error::IncompleteConfig("Origin not set. Expected 'Origin='-line.")),
             },
             public_key: match public_key {
-                Some(k) => k,
+                Some(k) => PublicKey(k),
                 None => return Err(Error::IncompleteConfig("Public key not set. Expected 'PublicKey='-line.")),
             },
             destination: match destination {
