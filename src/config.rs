@@ -6,6 +6,7 @@
 use std::path::PathBuf;
 
 use base64;
+use ring::signature::Ed25519KeyPair;
 use untrusted::Input;
 
 use error::{Error, Result};
@@ -16,6 +17,12 @@ pub struct PublicKey([u8; 32]);
 impl PublicKey {
     pub fn as_input(&self) -> Input {
         Input::from(&self.0)
+    }
+
+    pub fn from_pair(pair: &Ed25519KeyPair) -> PublicKey {
+        let mut bytes = [0_u8; 32];
+        bytes.copy_from_slice(pair.public_key_bytes());
+        PublicKey(bytes)
     }
 }
 
@@ -128,7 +135,7 @@ mod test {
         ];
         let config = Config::parse(&config_lines).unwrap();
         assert_eq!(&config.origin[..], "https://images.example.com/app-foo");
-        assert_eq!(config.public_key[..4], [0xf3, 0xea, 0xf9, 0x0c]);
+        assert_eq!(config.public_key.0[..4], [0xf3, 0xea, 0xf9, 0x0c]);
         assert_eq!(config.destination.as_path(), Path::new("/var/lib/images/app-foo"));
     }
 

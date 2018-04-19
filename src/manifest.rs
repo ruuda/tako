@@ -239,6 +239,7 @@ impl Manifest {
 mod test {
     use ring::signature::Ed25519KeyPair;
 
+    use config::PublicKey;
     use error::Error;
     use super::{Entry, Manifest, parse_entry};
     use untrusted::Input;
@@ -248,6 +249,10 @@ mod test {
         // so they are deterministic.
         let seed = b"test-key-very-security-such-safe";
         Ed25519KeyPair::from_seed_unchecked(Input::from(seed)).unwrap()
+    }
+
+    fn get_test_public_key() -> PublicKey {
+        PublicKey::from_pair(&get_test_key_pair())
     }
 
     /// A sequence of 32 bytes that I don't want to repeat everywhere.
@@ -268,7 +273,7 @@ mod test {
     #[test]
     fn parse_rejects_unknown_version() {
         let raw = b"Tako Manifest 1.1\n\nWrong!\n";
-        match Manifest::parse(&raw[..]) {
+        match Manifest::parse(&raw[..], &get_test_public_key()) {
             Err(Error::InvalidManifest(..)) => { /* This is expected. */ },
             _ => panic!("Manifest should be rejected."),
         }
@@ -278,9 +283,23 @@ mod test {
     fn parse_parses_single_entry_manifest() {
         let raw = b"Tako Manifest 1\n\n\
             1.0.0 b101acf3c4870594bb4363090d5ab966c193fb329e2f2db2096708e08c4913e2\n\n\
-            fQK92C/tPnH0uqxrTEnU+LEE4jnSpQPbOItph4kGAEfWEmn6wPXiQsSdXlDmoneaJkG6KLvInTvB7FlELoeQFg==\n";
-        let manifest = Manifest::parse(&raw[..]).unwrap();
+            R9fjMZ9e2c5IrfByS53H6ur0VSWQfdTgAS2Y3t3lYcH9+ogDGtrbe65GhgEmDDD20Gfy8VyZQ82byF+NSANwDg==\n";
+        let manifest = Manifest::parse(&raw[..], &get_test_public_key()).unwrap();
         assert_eq!(manifest.entries.len(), 1);
+    }
+
+    #[test]
+    fn parse_rejects_manifest_on_signature_verification_failure() {
+        // The raw data here is identical to that in the test above apart from
+        // the signature. The data above has a correct signature, so the
+        // signature here must be wrong.
+        let raw = b"Tako Manifest 1\n\n\
+            1.0.0 b101acf3c4870594bb4363090d5ab966c193fb329e2f2db2096708e08c4913e2\n\n\
+            fQK92C/tPnH0uqxrTEnU+LEE4jnSpQPbOItph4kGAEfWEmn6wPXiQsSdXlDmoneaJkG6KLvInTvB7FlELoeQFg==\n";
+        match Manifest::parse(&raw[..], &get_test_public_key()) {
+            Err(Error::InvalidSignature) => { /* This is expected. */ },
+            _ => panic!("Manifest should be rejected."),
+        }
     }
 
     #[test]
@@ -288,8 +307,8 @@ mod test {
         let raw = b"Tako Manifest 1\n\n\
             1.0.0 b101acf3c4870594bb4363090d5ab966c193fb329e2f2db2096708e08c4913e2\n\
             2.0.0 b7b01c6f6772529c66b945e559cb1f46546ef62063e44c1d1068725157ae1cda\n\n\
-            fQK92C/tPnH0uqxrTEnU+LEE4jnSpQPbOItph4kGAEfWEmn6wPXiQsSdXlDmoneaJkG6KLvInTvB7FlELoeQFg==\n";
-        let manifest = Manifest::parse(&raw[..]).unwrap();
+            LxHj9lwxekDPgmZmhutklX65IZNV8KAVDEncot9JEo0Spsr2FVlcWkId7IFHwvR+5lxcKVxIAcgz3pf0vC7ABQ==\n";
+        let manifest = Manifest::parse(&raw[..], &get_test_public_key()).unwrap();
         assert_eq!(manifest.entries.len(), 2);
     }
 
