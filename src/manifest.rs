@@ -4,6 +4,7 @@
 //! Manifest file parser.
 
 use base64;
+use ring::signature::Ed25519KeyPair;
 
 use error::{Error, Result};
 use std::str;
@@ -16,7 +17,6 @@ pub struct Entry {
 
 pub struct Manifest {
     pub entries: Vec<Entry>,
-    pub signature: [u8; 64],
 }
 
 /// Parse header and return the version number.
@@ -42,6 +42,19 @@ fn parse_hex(ch: u8) -> Option<u8> {
         Some(ch - b'a' + 10)
     } else {
         None
+    }
+}
+
+const HEX_CHARS: [char; 16] = [
+    '0', '1', '2', '3', '4', '5', '6', '7',
+    '8', '9', 'a', 'b', 'c', 'd', 'e', 'f',
+];
+
+/// String-format a bytes as lowercase hexadecimal, append to the string.
+fn append_hex(string: &mut String, bytes: &[u8]) {
+    for &b in bytes {
+        string.push(HEX_CHARS[(b >> 4) as usize]);
+        string.push(HEX_CHARS[(b & 0xf) as usize]);
     }
 }
 
@@ -155,7 +168,6 @@ impl Manifest {
 
         let manifest = Manifest {
             entries: entries,
-            signature: signature,
         };
 
         Ok(manifest)
@@ -181,12 +193,49 @@ impl Manifest {
 
         true
     }
+
+    /// Print the manifest as a string and sign it, the inverse of `parse`.
+    pub fn serialize(&self, key_pair: &Ed25519KeyPair) -> String {
+        // Premature optimization: estimate the output size, so we have to do
+        // only a single allocation. 18 bytes for header (including newlines),
+        // 64 bytes per entry for the hash, 15 for version, space, and newline.
+        // And then 90 bytes for the signature including newlines.
+        let n = 18 + self.entries.len() * (15 + 64) + 90;
+        let mut out = String::with_capacity(n);
+
+        out.push_str("Tako Manifest 1\n\n");
+        for entry in &self.entries {
+            out.push_str(&entry.version);
+            out.push(' ');
+            append_hex(&mut out, &entry.sha256[..]);
+            out.push('\n');
+        }
+
+        let signature = key_pair.sign(out.as_bytes());
+        let signature_b64 = base64::encode(signature.as_ref());
+
+        out.push('\n');
+        out.push_str(&signature_b64);
+        out.push('\n');
+
+        out
+    }
 }
 
 #[cfg(test)]
 mod test {
+    use ring::signature::Ed25519KeyPair;
+
     use error::Error;
-    use super::{Manifest, parse_entry};
+    use super::{Entry, Manifest, parse_entry};
+    use untrusted::Input;
+
+    fn get_test_key_pair() -> Ed25519KeyPair {
+        // Produce the keypair from the same 32 bytes each time in the tests,
+        // so they are deterministic.
+        let seed = b"test-key-very-security-such-safe";
+        Ed25519KeyPair::from_seed_unchecked(Input::from(seed)).unwrap()
+    }
 
     #[test]
     fn parse_entry_parses_entry() {
@@ -230,4 +279,24 @@ mod test {
 
     // TODO: Add fuzzer for manifest parser. It is quite straightforward to do
     // so with cargo-fuzz.
+
+    #[test]
+    fn serialize_outputs_manifest() {
+        let entry0 = Entry {
+            version: String::from("1.0.0"),
+            sha256: [
+                0x96, 0x41, 0xa4, 0x9d, 0x02, 0xe9, 0x0c, 0xbb, 0x62, 0x13, 0xf2,
+                0x02, 0xfb, 0x63, 0x2d, 0xa7, 0x0c, 0xdc, 0x59, 0x07, 0x3d, 0x42,
+                0x28, 0x3c, 0xfc, 0xdc, 0x1d, 0x78, 0x64, 0x54, 0xf1, 0x7f
+            ],
+        };
+        let manifest = Manifest {
+            entries: vec![entry0],
+        };
+        let serialized = manifest.serialize(&get_test_key_pair());
+        let expected = "Tako Manifest 1\n\n\
+            1.0.0 9641a49d02e90cbb6213f202fb632da70cdc59073d42283cfcdc1d786454f17f\n\n\
+            kPqDaI+u6Vk0V1gVvFQQ8x7AC0vj2CmG8E3Ugi1cslZ4+Ya3BpgPKIYwSaU4FA+PwPp1RWu5OXdP4+whL0QFBw==\n";
+        assert_eq!(serialized, expected);
+    }
 }
