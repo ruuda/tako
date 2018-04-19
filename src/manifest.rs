@@ -223,10 +223,11 @@ impl Manifest {
             out.push('\n');
         }
 
+        out.push('\n');
+
         let signature = key_pair.sign(out.as_bytes());
         let signature_b64 = base64::encode(signature.as_ref());
 
-        out.push('\n');
         out.push_str(&signature_b64);
         out.push('\n');
 
@@ -307,7 +308,7 @@ mod test {
         let serialized = manifest.serialize(&get_test_key_pair());
         let expected = "Tako Manifest 1\n\n\
             1.0.0 9641a49d02e90cbb6213f202fb632da70cdc59073d42283cfcdc1d786454f17f\n\n\
-            kPqDaI+u6Vk0V1gVvFQQ8x7AC0vj2CmG8E3Ugi1cslZ4+Ya3BpgPKIYwSaU4FA+PwPp1RWu5OXdP4+whL0QFBw==\n";
+            ttye/o4X1aOQQwk8Rf9OHLyqhfhi440qgH8cxw8ol/UgoSj7e1tQbhoA44Q+vEonigVwPMl82j6T0X7hTbziAQ==\n";
         assert_eq!(serialized, expected);
     }
 }
