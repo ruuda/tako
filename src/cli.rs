@@ -15,6 +15,7 @@ Tako -- Take container image.
 Usage:
   tako fetch [--init] [--] <config>...
   tako store ---key=<keyfile> --output=<dir> <image> <version>
+  tako gen-key
   tako -h | --help
   tako --version
 
@@ -30,6 +31,7 @@ pub enum Cmd {
     Fetch(Vec<String>),
     Init(Vec<String>),
     Store(String, String, String, String),
+    GenKey,
     Help,
     Version,
 }
@@ -52,6 +54,7 @@ pub fn parse() -> Result<Cmd, String> {
     match args.next().as_ref().map(|s| &s[..]) {
         Some("fetch") => parse_fetch(args),
         Some("store") => parse_store(args),
+        Some("gen-key") => drain(args).and(Ok(Cmd::GenKey)),
         Some("-h") | Some("--help") => drain(args).and(Ok(Cmd::Help)),
         Some("--version") => drain(args).and(Ok(Cmd::Version)),
         Some(other) => unexpected(other),
