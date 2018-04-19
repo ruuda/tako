@@ -5,3 +5,6 @@
 # Editor files
 *.swp
 *.swo
+
+# Test output
+/tests/scratch
