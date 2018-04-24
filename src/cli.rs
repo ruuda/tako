@@ -200,7 +200,7 @@ impl Iterator for ArgIter {
                 self.leftover = Some(flag.split_off(1));
                 flag.truncate(1);
             }
-            return Some(Arg::Short(arg))
+            return Some(Arg::Short(flag))
         }
 
         Some(Arg::Plain(arg))
