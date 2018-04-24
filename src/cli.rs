@@ -73,6 +73,7 @@ Usage:
   tako gen-key
 ";
 
+#[derive(Debug, Eq, PartialEq)]
 pub struct Store {
     secret_key: Option<String>,
     secret_key_path: Option<PathBuf>,
@@ -81,6 +82,7 @@ pub struct Store {
     image_path: PathBuf,
 }
 
+#[derive(Debug, Eq, PartialEq)]
 pub enum Cmd {
     Fetch(Vec<String>),
     Init(Vec<String>),
@@ -347,4 +349,42 @@ fn drain(args: ArgIter) -> Result<(), String> {
 
 fn unexpected<T>(arg: Arg<String>) -> Result<T, String> {
     Err(format!("Unexpected argument '{}'.", arg))
+}
+
+#[cfg(test)]
+mod test {
+    use super::{Cmd, parse};
+
+    fn parse_slice(args: &[&'static str]) -> Result<Cmd, String> {
+        let argv = args.iter().map(|s| String::from(*s)).collect();
+        parse(argv)
+    }
+
+    #[test]
+    fn parse_parses_help() {
+        let expected = Ok(Cmd::Help("tako".to_string()));
+        assert_eq!(parse_slice(&["tako", "-h"]), expected);
+        assert_eq!(parse_slice(&["tako", "--help"]), expected);
+    }
+
+    #[test]
+    fn parse_parses_cmd_help() {
+        let fetch = Ok(Cmd::Help("fetch".to_string()));
+        assert_eq!(parse_slice(&["tako", "-h", "fetch"]), fetch);
+        assert_eq!(parse_slice(&["tako", "--help", "fetch"]), fetch);
+        assert_eq!(parse_slice(&["tako", "fetch", "-h"]), fetch);
+        assert_eq!(parse_slice(&["tako", "fetch", "--help"]), fetch);
+
+        let store = Ok(Cmd::Help("store".to_string()));
+        assert_eq!(parse_slice(&["tako", "-h", "store"]), store);
+        assert_eq!(parse_slice(&["tako", "--help", "store"]), store);
+        assert_eq!(parse_slice(&["tako", "store", "-h"]), store);
+        assert_eq!(parse_slice(&["tako", "store", "--help"]), store);
+
+        let gen_key = Ok(Cmd::Help("gen-key".to_string()));
+        assert_eq!(parse_slice(&["tako", "-h", "gen-key"]), gen_key);
+        assert_eq!(parse_slice(&["tako", "--help", "gen-key"]), gen_key);
+        assert_eq!(parse_slice(&["tako", "gen-key", "-h"]), gen_key);
+        assert_eq!(parse_slice(&["tako", "gen-key", "--help"]), gen_key);
+    }
 }
