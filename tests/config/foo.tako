@@ -1,5 +1,6 @@
 # The tests spin up a local webserver at port 8117.
 Origin=http://127.0.0.1:8117/tests/origin/foo
-PublicKey=8+r5DKNN/cwI+h0oHxMtgdyND3S/5xDLHQu0hFUmq+g=
+# The public key of the test key pair. See also src/manifest.rs.
+PublicKey=l0D28J2fiIXvWPbeZP7wkaq+dB55Gl2ysigl9mQH29k=
 Destination=tests/scratch/foo
 
