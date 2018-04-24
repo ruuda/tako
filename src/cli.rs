@@ -43,7 +43,7 @@ Usage:
   tako fetch [--init] [--] <config>...
 
 Options:
-  --init    Download image only if none exists already.
+  --init    Download images only if none exists already.
 
 Arguments:
   <config>  Path to a config file that determines what to fetch.
@@ -363,7 +363,8 @@ fn unexpected<T>(arg: Arg<String>) -> Result<T, String> {
 
 #[cfg(test)]
 mod test {
-    use super::{Cmd, parse};
+    use std::path::PathBuf;
+    use super::{Cmd, Store, parse};
 
     fn parse_slice(args: &[&'static str]) -> Result<Cmd, String> {
         let argv = args.iter().map(|s| String::from(*s)).collect();
@@ -396,5 +397,72 @@ mod test {
         assert_eq!(parse_slice(&["tako", "--help", "gen-key"]), gen_key);
         assert_eq!(parse_slice(&["tako", "gen-key", "-h"]), gen_key);
         assert_eq!(parse_slice(&["tako", "gen-key", "--help"]), gen_key);
+    }
+
+    #[test]
+    fn parse_parses_fetch() {
+        let fetch = Ok(Cmd::Fetch(vec!["foo".to_string(), "bar".to_string()]));
+        assert_eq!(parse_slice(&["tako", "fetch", "foo", "bar"]), fetch);
+        assert_eq!(parse_slice(&["tako", "fetch", "--", "foo", "bar"]), fetch);
+        assert_eq!(parse_slice(&["tako", "fetch", "foo", "--", "bar"]), fetch);
+
+        let fetch = Ok(Cmd::Fetch(vec!["foo".to_string(), "--bar".to_string()]));
+        assert_eq!(parse_slice(&["tako", "fetch", "foo", "--", "--bar"]), fetch);
+        assert_eq!(parse_slice(&["tako", "fetch", "--", "foo", "--bar"]), fetch);
+
+        // Unexpected argument --bar or -D.
+        assert!(parse_slice(&["tako", "fetch", "foo", "--bar"]).is_err());
+        assert!(parse_slice(&["tako", "fetch", "-DFIRE_MISSILE", "foo"]).is_err());
+
+        // No configs provided.
+        assert!(parse_slice(&["tako", "fetch"]).is_err());
+    }
+
+    #[test]
+    fn parse_parses_fetch_init() {
+        let init = Ok(Cmd::Init(vec!["foo".to_string(), "bar".to_string()]));
+        assert_eq!(parse_slice(&["tako", "fetch", "--init", "foo", "bar"]), init);
+        assert_eq!(parse_slice(&["tako", "fetch", "foo", "--init", "bar"]), init);
+        assert_eq!(parse_slice(&["tako", "fetch", "foo", "bar", "--init"]), init);
+    }
+
+    #[test]
+    fn parse_parses_store() {
+        let store = Store {
+            secret_key: Some("secret".to_string()),
+            secret_key_path: None,
+            output_path: PathBuf::from("/tmp"),
+            version: "3.7.5".to_string(),
+            image_path: PathBuf::from("out.img"),
+        };
+        let expected = Ok(Cmd::Store(store));
+
+        assert_eq!(parse_slice(
+            &["tako", "store", "--output", "/tmp", "--key", "secret", "out.img", "3.7.5"]
+        ), expected);
+        assert_eq!(parse_slice(
+            &["tako", "store", "--key", "secret", "--output", "/tmp", "out.img", "3.7.5"]
+        ), expected);
+        assert_eq!(parse_slice(
+            &["tako", "store", "out.img", "3.7.5", "--key=secret", "-o", "/tmp"]
+        ), expected);
+        assert_eq!(parse_slice(
+            &["tako", "store", "-ksecret", "out.img", "--output", "/tmp", "3.7.5"]
+        ), expected);
+
+        // Path and version not provided.
+        assert!(parse_slice(
+            &["tako", "store", "--output", "/tmp", "-ksecret", "out.img"]
+        ).is_err());
+        assert!(parse_slice(
+            &["tako", "store", "--output", "/tmp", "-ksecret"]
+        ).is_err());
+
+        // Server directory not provided.
+        assert!(parse_slice(
+            &["tako", "store", "-ksecret", "out.img", "3.7.5"]
+        ).is_err());
+
+        // TODO: Verify --key-file/-f and environment variable getter.
     }
 }
