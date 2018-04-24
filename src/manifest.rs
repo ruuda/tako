@@ -16,11 +16,29 @@ use untrusted::Input;
 
 use config::PublicKey;
 use error::{Error, Result};
+use util;
+
+#[derive(Debug, Clone, Eq, PartialEq)]
+pub struct Sha256([u8; 32]);
+
+impl Sha256 {
+    pub fn copy_from_slice(bytes: &[u8]) -> Sha256 {
+        let mut sha256 = [0_u8; 32];
+        sha256.copy_from_slice(bytes);
+        Sha256(sha256)
+    }
+}
+
+impl AsRef<[u8]> for Sha256 {
+    fn as_ref(&self) -> &[u8] {
+        &self.0[..]
+    }
+}
 
 #[derive(Debug, Eq, PartialEq)]
 pub struct Entry {
     pub version: String,
-    pub sha256: [u8; 32],
+    pub digest: Sha256,
 }
 
 pub struct Manifest {
@@ -50,19 +68,6 @@ fn parse_hex(ch: u8) -> Option<u8> {
         Some(ch - b'a' + 10)
     } else {
         None
-    }
-}
-
-const HEX_CHARS: [char; 16] = [
-    '0', '1', '2', '3', '4', '5', '6', '7',
-    '8', '9', 'a', 'b', 'c', 'd', 'e', 'f',
-];
-
-/// String-format a bytes as lowercase hexadecimal, append to the string.
-fn append_hex(string: &mut String, bytes: &[u8]) {
-    for &b in bytes {
-        string.push(HEX_CHARS[(b >> 4) as usize]);
-        string.push(HEX_CHARS[(b & 0xf) as usize]);
     }
 }
 
@@ -104,7 +109,7 @@ fn parse_entry(line: &[u8]) -> Result<Entry> {
 
     let entry = Entry {
         version: version,
-        sha256: sha256,
+        digest: Sha256(sha256),
     };
 
     Ok(entry)
@@ -229,7 +234,7 @@ impl Manifest {
         for entry in &self.entries {
             out.push_str(&entry.version);
             out.push(' ');
-            append_hex(&mut out, &entry.sha256[..]);
+            util::append_hex(&mut out, &entry.digest.as_ref());
             out.push('\n');
         }
 
@@ -270,7 +275,7 @@ mod test {
 
     use config::PublicKey;
     use error::Error;
-    use super::{Entry, Manifest, parse_entry};
+    use super::{Entry, Manifest, Sha256, parse_entry};
     use untrusted::Input;
 
     fn get_test_key_pair() -> Ed25519KeyPair {
@@ -285,18 +290,21 @@ mod test {
     }
 
     /// A sequence of 32 bytes that I don't want to repeat everywhere.
-    const TEST_SHA256: [u8; 32] = [
-        0x96, 0x41, 0xa4, 0x9d, 0x02, 0xe9, 0x0c, 0xbb, 0x62, 0x13, 0xf2,
-        0x02, 0xfb, 0x63, 0x2d, 0xa7, 0x0c, 0xdc, 0x59, 0x07, 0x3d, 0x42,
-        0x28, 0x3c, 0xfc, 0xdc, 0x1d, 0x78, 0x64, 0x54, 0xf1, 0x7f
-    ];
+    fn get_test_sha256() -> Sha256 {
+        const TEST_SHA256: [u8; 32] = [
+            0x96, 0x41, 0xa4, 0x9d, 0x02, 0xe9, 0x0c, 0xbb, 0x62, 0x13, 0xf2,
+            0x02, 0xfb, 0x63, 0x2d, 0xa7, 0x0c, 0xdc, 0x59, 0x07, 0x3d, 0x42,
+            0x28, 0x3c, 0xfc, 0xdc, 0x1d, 0x78, 0x64, 0x54, 0xf1, 0x7f
+        ];
+        Sha256(TEST_SHA256)
+    }
 
     #[test]
     fn parse_entry_parses_entry() {
         let raw = b"1.1.0 9641a49d02e90cbb6213f202fb632da70cdc59073d42283cfcdc1d786454f17f";
         let entry = parse_entry(&raw[..]).unwrap();
         assert_eq!(&entry.version[..], "1.1.0");
-        assert_eq!(&entry.sha256[..], &TEST_SHA256[..]);
+        assert_eq!(entry.digest, get_test_sha256());
     }
 
     #[test]
@@ -348,7 +356,7 @@ mod test {
     fn serialize_outputs_manifest() {
         let entry0 = Entry {
             version: String::from("1.0.0"),
-            sha256: TEST_SHA256,
+            digest: get_test_sha256(),
         };
         let manifest = Manifest {
             entries: vec![entry0],

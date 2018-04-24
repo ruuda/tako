@@ -5,15 +5,30 @@
 
 use std::fs;
 use std::io::Read;
+use std::path::Path;
 
 use base64;
+use ring;
 use ring::signature::Ed25519KeyPair;
 use untrusted::Input;
 
 use cli::Store;
 use config::PublicKey;
 use error::{Error, Result};
-use manifest::Manifest;
+use manifest::{Manifest, Sha256};
+use util;
+
+pub fn sha256sum(path: &Path) -> Result<Sha256> {
+    // TODO: Use Filebuffer mmap for this once I have an internet connection
+    // again. Cargo does not let me add a dependency without an internet
+    // connection. Even if I specify a dependency by local path, this does not
+    // work, unfortunately.
+    let mut bytes = Vec::new();
+    let mut f = fs::File::open(path)?;
+    f.read_to_end(&mut bytes)?;
+    let sha256_bytes = ring::digest::digest(&ring::digest::SHA256, &bytes);
+    Ok(Sha256::copy_from_slice(sha256_bytes.as_ref()))
+}
 
 pub fn store(store: Store) -> Result<()> {
     let secret_key_base64 = match (store.secret_key, store.secret_key_path) {
@@ -45,6 +60,12 @@ pub fn store(store: Store) -> Result<()> {
         Some(m) => m,
         None => Manifest::new(),
     };
+
+    let digest = sha256sum(&store.image_path)?;
+    let mut digest_hex = String::new();
+    util::append_hex(&mut digest_hex, digest.as_ref());
+
+    println!("{} -> {}", store.version, digest_hex);
 
     unimplemented!("TODO: Read old manifest, append, construct write new.");
 }

@@ -24,6 +24,7 @@ mod error;
 mod fetch;
 mod manifest;
 mod store;
+mod util;
 
 fn run_init(config_fname: &String) {
     println!("Run for {}.", config_fname);
