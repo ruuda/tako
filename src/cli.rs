@@ -99,7 +99,7 @@ pub fn print_usage(cmd: String) {
         "fetch" => print!("{}", &USAGE_FETCH[1..]),
         "store" => print!("{}", &USAGE_STORE[1..]),
         "gen-key" => print!("{}", &USAGE_GEN_KEY[1..]),
-        _ => print!("'{}' is not a Tako command. See 'tako --help'.", cmd),
+        _ => println!("'{}' is not a Tako command. See 'tako --help'.", cmd),
     }
 }
 
@@ -358,7 +358,7 @@ fn drain(args: ArgIter) -> Result<(), String> {
 }
 
 fn unexpected<T>(arg: Arg<String>) -> Result<T, String> {
-    Err(format!("Unexpected argument '{}'.", arg))
+    Err(format!("Unexpected argument '{}'. See 'tako --help'.", arg))
 }
 
 #[cfg(test)]
