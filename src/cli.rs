@@ -221,7 +221,7 @@ pub fn parse(argv: Vec<String>) -> Result<Cmd, String> {
     match arg.as_ref() {
         Arg::Plain("fetch") => parse_fetch(args),
         Arg::Plain("store") => parse_store(args),
-        Arg::Plain("gen-key") => drain(args).and(Ok(Cmd::GenKey)),
+        Arg::Plain("gen-key") => parse_gen_key(args),
         Arg::Long("version") => drain(args).and(Ok(Cmd::Version)),
         Arg::Short("h") | Arg::Long("help") => parse_help(args),
         _ => return unexpected(arg),
@@ -317,6 +317,16 @@ fn parse_store(mut args: ArgIter) -> Result<Cmd, String> {
     };
 
     Ok(Cmd::Store(store))
+}
+
+fn parse_gen_key(mut args: ArgIter) -> Result<Cmd, String> {
+    while let Some(arg) = args.next() {
+        match arg.as_ref() {
+            Arg::Short("h") | Arg::Long("help") => return drain_help(args, "gen-key"),
+            _ => return unexpected(arg),
+        }
+    }
+    Ok(Cmd::GenKey)
 }
 
 fn parse_help(mut args: ArgIter) -> Result<Cmd, String> {
