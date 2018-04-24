@@ -75,11 +75,11 @@ Usage:
 
 #[derive(Debug, Eq, PartialEq)]
 pub struct Store {
-    secret_key: Option<String>,
-    secret_key_path: Option<PathBuf>,
-    output_path: PathBuf,
-    version: String,
-    image_path: PathBuf,
+    pub secret_key: Option<String>,
+    pub secret_key_path: Option<PathBuf>,
+    pub output_path: PathBuf,
+    pub version: String,
+    pub image_path: PathBuf,
 }
 
 #[derive(Debug, Eq, PartialEq)]

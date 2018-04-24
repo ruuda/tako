@@ -16,8 +16,11 @@ pub enum Error {
     /// A key is missing in the config.
     IncompleteConfig(&'static str),
 
-    /// Public key in config could not be parsed as base64.
+    /// Public key in config on a given line could not be parsed as base64.
     InvalidPublicKeyData(usize, base64::DecodeError),
+
+    /// Secret key could not be parsed as base64, or the decoded key is invalid.
+    InvalidSecretKeyData,
 
     /// Error in manifest file.
     InvalidManifest(&'static str),

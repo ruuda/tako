@@ -23,6 +23,7 @@ mod curl;
 mod error;
 mod fetch;
 mod manifest;
+mod store;
 
 fn run_init(config_fname: &String) {
     println!("Run for {}.", config_fname);
@@ -37,6 +38,10 @@ fn run_init(config_fname: &String) {
 fn run_fetch(config_fname: &String) {
     println!("Run for {}.", config_fname);
     fetch::fetch(config_fname).unwrap();
+}
+
+fn run_store(store: cli::Store) {
+    store::store(store).unwrap();
 }
 
 fn run_gen_key() -> Result<(), ring::error::Unspecified> {
@@ -72,7 +77,7 @@ fn main() {
     match cli::parse(args) {
         Ok(Cmd::Fetch(fnames)) => fnames.iter().for_each(run_fetch),
         Ok(Cmd::Init(fnames)) => fnames.iter().for_each(run_init),
-        Ok(Cmd::Store(..)) => unimplemented!(),
+        Ok(Cmd::Store(store)) => run_store(store),
         // TODO: Implement a better error handler.
         Ok(Cmd::GenKey) => run_gen_key().unwrap(),
         Ok(Cmd::Help(cmd)) => cli::print_usage(cmd),
