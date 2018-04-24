@@ -65,7 +65,7 @@ pub fn fetch(config_fname: &str) -> Result<()> {
     // TODO: In the case of a key rotation, after updating the key in the
     // config, we would no longer be able to load the currently stored manifest.
     // How to deal with that? Allow multiple public keys in the config?
-    let local_manifest = load_local_manifest(&config)?;
+    let local_manifest = Manifest::load_local(&config.destination, &config.public_key)?;
 
     let mut curl_handle = curl::Handle::new();
 

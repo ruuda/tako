@@ -11,7 +11,9 @@ use ring::signature::Ed25519KeyPair;
 use untrusted::Input;
 
 use cli::Store;
+use config::PublicKey;
 use error::{Error, Result};
+use manifest::Manifest;
 
 pub fn store(store: Store) -> Result<()> {
     let secret_key_base64 = match (store.secret_key, store.secret_key_path) {
@@ -36,7 +38,13 @@ pub fn store(store: Store) -> Result<()> {
     let secret_key_bytes = base64::decode(&secret_key_base64).or(err)?;
 
     let err = Err(Error::InvalidSecretKeyData);
-    let secret_key = Ed25519KeyPair::from_pkcs8(Input::from(&secret_key_bytes)).or(err)?;
+    let key_pair = Ed25519KeyPair::from_pkcs8(Input::from(&secret_key_bytes)).or(err)?;
+    let public_key = PublicKey::from_pair(&key_pair);
+
+    let current_manifest = match Manifest::load_local(&store.output_path, &public_key)? {
+        Some(m) => m,
+        None => Manifest::new(),
+    };
 
     unimplemented!("TODO: Read old manifest, append, construct write new.");
 }

@@ -3,6 +3,10 @@
 
 //! Manifest file parser.
 
+use std::fs;
+use std::io;
+use std::io::Read;
+use std::path::{Path, PathBuf};
 use std::str;
 
 use base64;
@@ -125,6 +129,12 @@ fn parse_signature(sig_base64: &[u8]) -> Result<[u8; 64]> {
 }
 
 impl Manifest {
+    pub fn new() -> Manifest {
+        Manifest {
+            entries: Vec::new(),
+        }
+    }
+
     pub fn parse(bytes: &[u8], public_key: &PublicKey) -> Result<Manifest> {
         let mut lines = bytes.split(|b| *b == b'\n');
         let mut entries = Vec::new();
@@ -232,6 +242,25 @@ impl Manifest {
         out.push('\n');
 
         out
+    }
+
+    /// Load a locally stored manifest from a store directory.
+    ///
+    /// If the manifest exists, it is parsed and returned. If it does not exist,
+    /// None is returned, rather than an Err.
+    pub fn load_local(dir: &Path, public_key: &PublicKey) -> Result<Option<Manifest>> {
+        // Open the current manifest. If it does not exist that is not an error.
+        let mut path = PathBuf::from(dir);
+        path.push("manifest");
+        let mut f = match fs::File::open(path) {
+            Err(ref e) if e.kind() == io::ErrorKind::NotFound => return Ok(None),
+            other => other?,
+        };
+
+        let mut manifest_bytes = Vec::new();
+        f.read_to_end(&mut manifest_bytes)?;
+
+        Ok(Some(Manifest::parse(&manifest_bytes[..], public_key)?))
     }
 }
 
