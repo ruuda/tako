@@ -73,7 +73,7 @@ fn main() {
         Ok(Cmd::Store(..)) => unimplemented!(),
         // TODO: Implement a better error handler.
         Ok(Cmd::GenKey) => run_gen_key().unwrap(),
-        Ok(Cmd::Help) => cli::print_usage(),
+        Ok(Cmd::Help(cmd)) => cli::print_usage(cmd),
         Ok(Cmd::Version) => cli::print_version(),
         Err(msg) => {
             println!("{}", msg); // TODO: stderr.
