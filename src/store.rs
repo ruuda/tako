@@ -5,7 +5,7 @@
 
 use std::fs;
 use std::io::Read;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 use base64;
 use ring;
@@ -15,7 +15,8 @@ use untrusted::Input;
 use cli::Store;
 use config::PublicKey;
 use error::{Error, Result};
-use manifest::{Manifest, Sha256};
+use manifest;
+use manifest::{Entry, Manifest, Sha256};
 use util;
 
 pub fn sha256sum(path: &Path) -> Result<Sha256> {
@@ -56,16 +57,56 @@ pub fn store(store: Store) -> Result<()> {
     let key_pair = Ed25519KeyPair::from_pkcs8(Input::from(&secret_key_bytes)).or(err)?;
     let public_key = PublicKey::from_pair(&key_pair);
 
-    let current_manifest = match Manifest::load_local(&store.output_path, &public_key)? {
+    let mut manifest = match Manifest::load_local(&store.output_path, &public_key)? {
         Some(m) => m,
         None => Manifest::new(),
     };
+
+    let mut store_dir = PathBuf::from(&store.output_path);
+    store_dir.push("store");
+
+    // The server directory must exist, but we can create the store directory
+    // inside there, in case we are constructing a completely new
+    // store/manifest.
+    if !store_dir.is_dir() {
+        fs::create_dir(&store_dir)?;
+    }
 
     let digest = sha256sum(&store.image_path)?;
     let mut digest_hex = String::new();
     util::append_hex(&mut digest_hex, digest.as_ref());
 
+    let mut target_fname = store_dir;
+    target_fname.push(&digest_hex);
+
+    // Copy the image into the store under its content-based name. If the target
+    // exists, verify the checksum instead.
+    if target_fname.is_file() {
+        // TODO: Verify SHA256.
+    } else {
+        fs::copy(&store.image_path, &target_fname)?;
+    }
+
+    // The store should be immutable, make the file readonly.
+    let mut perms = fs::metadata(&target_fname)?.permissions();
+    perms.set_readonly(true);
+    fs::set_permissions(&target_fname, perms)?;
+
     println!("{} -> {}", store.version, digest_hex);
 
-    unimplemented!("TODO: Read old manifest, append, construct write new.");
+    // Add the new entry to the manifest.
+    let entry = Entry {
+        version: store.version,
+        digest: digest,
+    };
+    manifest.entries.push(entry);
+
+    // TODO: Sort and deduplicate. Verify that versions do not occur twice.
+
+    // And finally store the new manifest. Write to a temporary file, then swap
+    // it into place.
+    let manifest_string = manifest.serialize(&key_pair);
+    manifest::store_local(&store.output_path, manifest_string.as_bytes())?;
+
+    Ok(())
 }

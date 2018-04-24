@@ -10,6 +10,7 @@ use std::io::{BufRead, Read, Write};
 use config::Config;
 use curl;
 use error::{Error, Result};
+use manifest;
 use manifest::Manifest;
 
 fn load_config(config_fname: &str) -> Result<Config> {
@@ -91,7 +92,7 @@ pub fn fetch(config_fname: &str) -> Result<()> {
     // Store the manifest locally before we continue. It doesn't hurt to have
     // more entries in there even if we don't have the images yet. But on the
     // other hand, if an image exists locally, it had better be in the manifest.
-    store_local_manifest(&config, &manifest_bytes[..])?;
+    manifest::store_local(&config.destination, &manifest_bytes[..])?;
 
     for entry in &remote_manifest.entries {
         println!("entry: {:?}", entry);

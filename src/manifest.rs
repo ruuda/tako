@@ -5,7 +5,7 @@
 
 use std::fs;
 use std::io;
-use std::io::Read;
+use std::io::{Read, Write};
 use std::path::{Path, PathBuf};
 use std::str;
 
@@ -267,6 +267,26 @@ impl Manifest {
 
         Ok(Some(Manifest::parse(&manifest_bytes[..], public_key)?))
     }
+}
+
+/// Store a manifest locally. Writes first and then swaps the file.
+///
+/// Takes the target directory path and manifest bytes.
+pub fn store_local(path: &Path, bytes: &[u8]) -> Result<()> {
+    let mut path_tmp = PathBuf::from(path);
+    let mut path_final = PathBuf::from(path);
+    path_tmp.push("manifest.new");
+    path_final.push("manifest");
+
+    // First write the entire manifest to a new file.
+    let f = fs::File::create(&path_tmp)?;
+    let mut buf_writer = io::BufWriter::new(f);
+    buf_writer.write_all(bytes)?;
+
+    // Then rename it over the old manifest.
+    fs::rename(path_tmp, path_final)?;
+
+    Ok(())
 }
 
 #[cfg(test)]
