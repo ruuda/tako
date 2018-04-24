@@ -4,12 +4,17 @@
 //! Command-line argument parser.
 //!
 //! There do exist Rust libraries for this, but they either bring along too many
-//! dependencies, or they only support flags and not commands.
+//! dependencies, or they only support flags and not commands. And even then, a
+//! command line parser is of limited help: validation and interaction between
+//! flags still involves a lot of probing the "parsed" flags. So rather than
+//! using an external parser, this module provides a light abstraction `ArgIter`
+//! to deal with the distinction between long and short flags, and arguments,
+//! and a handwritten parser/validator on top based mostly on pattern matching.
 
 use std::env;
-use std::env::Args;
-use std::path::PathBuf;
 use std::fmt;
+use std::path::PathBuf;
+use std::vec;
 
 const USAGE: &'static str = "
 Tako -- Take container image.
@@ -86,11 +91,12 @@ pub enum Cmd {
 }
 
 pub fn print_usage(cmd: String) {
+    // Slice usage strings from 1, to cut off the initial newline.
     match &cmd[..] {
-        "tako" => print!("{}", USAGE),
-        "fetch" => print!("{}", USAGE_FETCH),
-        "store" => print!("{}", USAGE_STORE),
-        "gen-key" => print!("{}", USAGE_GEN_KEY),
+        "tako" => print!("{}", &USAGE[1..]),
+        "fetch" => print!("{}", &USAGE_FETCH[1..]),
+        "store" => print!("{}", &USAGE_STORE[1..]),
+        "gen-key" => print!("{}", &USAGE_GEN_KEY[1..]),
         _ => print!("'{}' is not a Tako command. See 'tako --help'.", cmd),
     }
 }
@@ -135,8 +141,8 @@ impl fmt::Display for Arg<String> {
 }
 
 struct ArgIter {
-    /// Underlying `std::env` args iterator.
-    args: Args,
+    /// Underlying args iterator.
+    args: vec::IntoIter<String>,
 
     /// Whether we have observed a `--` argument.
     is_raw: bool,
@@ -149,9 +155,9 @@ struct ArgIter {
 }
 
 impl ArgIter {
-    pub fn new() -> ArgIter {
+    pub fn new(args: Vec<String>) -> ArgIter {
         ArgIter {
-            args: env::args(),
+            args: args.into_iter(),
             is_raw: false,
             leftover: None,
         }
@@ -199,8 +205,8 @@ impl Iterator for ArgIter {
     }
 }
 
-pub fn parse() -> Result<Cmd, String> {
-    let mut args = ArgIter::new();
+pub fn parse(argv: Vec<String>) -> Result<Cmd, String> {
+    let mut args = ArgIter::new(argv);
 
     // Skip executable name.
     args.next();

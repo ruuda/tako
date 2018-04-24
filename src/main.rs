@@ -11,6 +11,7 @@ extern crate untrusted;
 use std::io::Write;
 use std::io;
 use std::process;
+use std::env;
 
 use ring::rand::SystemRandom;
 use ring::signature::Ed25519KeyPair;
@@ -67,7 +68,8 @@ fn run_gen_key() -> Result<(), ring::error::Unspecified> {
 
 fn main() {
     use cli::Cmd;
-    match cli::parse() {
+    let args = env::args().collect();
+    match cli::parse(args) {
         Ok(Cmd::Fetch(fnames)) => fnames.iter().for_each(run_fetch),
         Ok(Cmd::Init(fnames)) => fnames.iter().for_each(run_init),
         Ok(Cmd::Store(..)) => unimplemented!(),
