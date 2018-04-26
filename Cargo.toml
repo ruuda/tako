@@ -8,6 +8,10 @@ authors = [
 ]
 
 [dependencies]
-base64    = "0.9.0"
-ring      = "0.13.0-alpha"
-untrusted = "0.6.1"
+base64     = "0.9.0"
+ring       = "0.13.0-alpha"
+untrusted  = "0.6.1"
+# TODO: Release a new version of Filebuffer with winapi dependency bumped,
+# so we don't end up with two versions of transitive dependencies in the lock
+# file.
+filebuffer = "0.3.0"

@@ -8,8 +8,9 @@ use std::io::Read;
 use std::path::{Path, PathBuf};
 
 use base64;
-use ring;
+use filebuffer::FileBuffer;
 use ring::signature::Ed25519KeyPair;
+use ring;
 use untrusted::Input;
 
 use cli::Store;
@@ -20,14 +21,11 @@ use manifest::{Entry, Manifest, Sha256};
 use util;
 
 pub fn sha256sum(path: &Path) -> Result<Sha256> {
-    // TODO: Use Filebuffer mmap for this once I have an internet connection
-    // again. Cargo does not let me add a dependency without an internet
-    // connection. Even if I specify a dependency by local path, this does not
-    // work, unfortunately.
-    let mut bytes = Vec::new();
-    let mut f = fs::File::open(path)?;
-    f.read_to_end(&mut bytes)?;
-    let sha256_bytes = ring::digest::digest(&ring::digest::SHA256, &bytes);
+    // Mmap the file when computing its digest. This way we can compute the
+    // digest of files that don't fit in memory, without having to care about
+    // streaming manually. Simple and fast.
+    let fbuffer = FileBuffer::open(path)?;
+    let sha256_bytes = ring::digest::digest(&ring::digest::SHA256, &fbuffer);
     Ok(Sha256::copy_from_slice(sha256_bytes.as_ref()))
 }
 

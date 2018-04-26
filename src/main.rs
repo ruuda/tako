@@ -5,6 +5,7 @@
 #![allow(dead_code)]
 
 extern crate base64;
+extern crate filebuffer;
 extern crate ring;
 extern crate untrusted;
 
