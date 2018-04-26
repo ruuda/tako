@@ -363,6 +363,13 @@ mod test {
         Sha256(TEST_SHA256)
     }
 
+    fn get_test_entry(version: &'static str) -> Entry {
+        Entry {
+            version: Version::from(version),
+            digest: get_test_sha256(),
+        }
+    }
+
     #[test]
     fn parse_entry_parses_entry() {
         let raw = b"1.1.0 9641a49d02e90cbb6213f202fb632da70cdc59073d42283cfcdc1d786454f17f";
@@ -418,12 +425,9 @@ mod test {
 
     #[test]
     fn serialize_outputs_manifest() {
-        let entry0 = Entry {
-            version: Version::from("1.0.0"),
-            digest: get_test_sha256(),
-        };
+        let entry = get_test_entry("1.0.0");
         let manifest = Manifest {
-            entries: vec![entry0],
+            entries: vec![entry],
         };
         let serialized = manifest.serialize(&get_test_key_pair());
         let expected = "Tako Manifest 1\n\n\
@@ -434,12 +438,9 @@ mod test {
 
     #[test]
     fn serialize_then_parse_is_identity() {
-        let entry0 = Entry {
-            version: Version::from("1.0.0"),
-            digest: get_test_sha256(),
-        };
+        let entry = get_test_entry("1.0.0");
         let manifest = Manifest {
-            entries: vec![entry0],
+            entries: vec![entry],
         };
         let serialized = manifest.serialize(&get_test_key_pair());
         let deserialized = Manifest::parse(
@@ -451,14 +452,8 @@ mod test {
 
     #[test]
     fn entry_order_does_not_depend_on_insertion_order() {
-        let entry0 = Entry {
-            version: Version::from("0.0.0"),
-            digest: get_test_sha256(),
-        };
-        let entry1 = Entry {
-            version: Version::from("1.0.0"),
-            digest: get_test_sha256(),
-        };
+        let entry0 = get_test_entry("0.0.0");
+        let entry1 = get_test_entry("1.0.0");
 
         let mut m_0_1 = Manifest::new();
         m_0_1.insert(entry0.clone()).unwrap();
@@ -473,10 +468,7 @@ mod test {
 
     #[test]
     fn insert_allows_reinsert_if_identical() {
-        let entry = Entry {
-            version: Version::from("0.0.0"),
-            digest: get_test_sha256(),
-        };
+        let entry = get_test_entry("0.0.0");
         let mut manifest = Manifest::new();
         manifest.insert(entry.clone()).unwrap();
         manifest.insert(entry).unwrap();
@@ -485,10 +477,7 @@ mod test {
 
     #[test]
     fn insert_rejects_reinsert_if_digest_differs() {
-        let entry = Entry {
-            version: Version::from("0.0.0"),
-            digest: get_test_sha256(),
-        };
+        let entry = get_test_entry("0.0.0");
         let mut entry_alt = entry.clone();
         // Change the digest.
         entry_alt.digest.0[8] = 144;
@@ -505,14 +494,8 @@ mod test {
 
     #[test]
     fn insert_rejects_reinsert_if_version_format_differs() {
-        let entry = Entry {
-            version: Version::from("1.0.0"),
-            digest: get_test_sha256(),
-        };
-        let entry_alt = Entry {
-            version: Version::from("1.0-0"),
-            digest: get_test_sha256(),
-        };
+        let entry = get_test_entry("1.0.0");
+        let entry_alt = get_test_entry("1.0-0");
 
         let mut manifest = Manifest::new();
         manifest.insert(entry).unwrap();
