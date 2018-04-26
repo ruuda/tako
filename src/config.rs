@@ -10,6 +10,7 @@ use ring::signature::Ed25519KeyPair;
 use untrusted::Input;
 
 use error::{Error, Result};
+use version::Version;
 
 #[derive(Debug)]
 pub struct PublicKey([u8; 32]);
@@ -30,6 +31,7 @@ impl PublicKey {
 pub struct Config {
     pub origin: String,
     pub public_key: PublicKey,
+    pub version: Version,
     pub destination: PathBuf,
     pub restart_units: Vec<String>,
 }
@@ -57,6 +59,7 @@ impl Config {
           S: AsRef<str> {
         let mut origin = None;
         let mut public_key = None;
+        let mut version = None;
         let mut destination = None;
         let mut restart_units = Vec::new();
 
@@ -84,6 +87,9 @@ impl Config {
                     "PublicKey" => {
                         public_key = Some(parse_public_key(lineno, value)?);
                     }
+                    "Version" => {
+                        version = Some(Version::from(value));
+                    }
                     "Destination" => {
                         destination = Some(PathBuf::from(value));
                     }
@@ -91,12 +97,15 @@ impl Config {
                         restart_units.push(String::from(value));
                     }
                     _ => {
-                        let msg = "Unknown key. Expected 'Origin', 'PublicKey', 'Destination', or 'RestartUnit'.";
+                        let msg = "Unknown key. Expected one of \
+                            'Origin', 'PublicKey', 'Version', 'Destination', \
+                            or 'RestartUnit'.";
                         return Err(Error::InvalidConfig(lineno, msg))
                     }
                 }
             } else {
-                let msg = "Line contains no '='. Expected 'Origin=https://example.com'-like key-value pair.";
+                let msg = "Line contains no '='. \
+                    Expected 'Origin=https://example.com'-like key-value pair.";
                 return Err(Error::InvalidConfig(lineno, msg))
             }
         }
@@ -104,15 +113,28 @@ impl Config {
         let config = Config {
             origin: match origin {
                 Some(o) => o,
-                None => return Err(Error::IncompleteConfig("Origin not set. Expected 'Origin='-line.")),
+                None => return Err(Error::IncompleteConfig(
+                    "Origin not set. Expected 'Origin='-line."
+                )),
             },
             public_key: match public_key {
                 Some(k) => PublicKey(k),
-                None => return Err(Error::IncompleteConfig("Public key not set. Expected 'PublicKey='-line.")),
+                None => return Err(Error::IncompleteConfig(
+                    "Public key not set. Expected 'PublicKey='-line."
+                )),
+            },
+            version: match version {
+                Some(v) => v,
+                None => return Err(Error::IncompleteConfig(
+                    "Version not set. Expected 'Version='-line. \
+                    Use 'Version=*' to accept any version."
+                )),
             },
             destination: match destination {
                 Some(d) => d,
-                None => return Err(Error::IncompleteConfig("Destination not set. Expected 'Destination=/path'-line.")),
+                None => return Err(Error::IncompleteConfig(
+                    "Destination not set. Expected 'Destination=/path'-line."
+                )),
             },
             restart_units: restart_units,
         };
@@ -124,7 +146,9 @@ impl Config {
 #[cfg(test)]
 mod test {
     use std::path::Path;
+
     use super::Config;
+    use version::Version;
 
     #[test]
     pub fn config_with_0_restart_units_is_parsed() {
@@ -132,11 +156,13 @@ mod test {
             "Origin=https://images.example.com/app-foo",
             "PublicKey=8+r5DKNN/cwI+h0oHxMtgdyND3S/5xDLHQu0hFUmq+g=",
             "Destination=/var/lib/images/app-foo",
+            "Version=*",
         ];
         let config = Config::parse(&config_lines).unwrap();
         assert_eq!(&config.origin[..], "https://images.example.com/app-foo");
         assert_eq!(config.public_key.0[..4], [0xf3, 0xea, 0xf9, 0x0c]);
         assert_eq!(config.destination.as_path(), Path::new("/var/lib/images/app-foo"));
+        assert_eq!(config.version, Version::from("*"));
     }
 
     #[test]
@@ -144,6 +170,7 @@ mod test {
         let config_lines = [
             "Origin=https://images.example.com/app-foo",
             "PublicKey=8+r5DKNN/cwI+h0oHxMtgdyND3S/5xDLHQu0hFUmq+g=",
+            "Version=*",
             "Destination=/var/lib/images/app-foo",
             "RestartUnit=foo",
         ];
@@ -156,6 +183,7 @@ mod test {
         let config_lines = [
             "Origin=https://images.example.com/app-foo",
             "PublicKey=8+r5DKNN/cwI+h0oHxMtgdyND3S/5xDLHQu0hFUmq+g=",
+            "Version=1.*",
             "Destination=/var/lib/images/app-foo",
             "RestartUnit=foo",
             "RestartUnit=bar",
@@ -172,6 +200,7 @@ mod test {
             "PublicKey=8+r5DKNN/cwI+h0oHxMtgdyND3S/5xDLHQu0hFUmq+g=",
             "; This is also a comment.",
             "Destination=/var/lib/images/app-foo",
+            "Version=1",
         ];
         assert!(Config::parse(&config_lines).is_ok());
     }
