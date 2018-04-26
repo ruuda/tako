@@ -303,6 +303,19 @@ impl Manifest {
         }
         Ok(())
     }
+
+    /// Return the entry with the largest version number that is within bounds.
+    ///
+    /// The lower bound is inclusive and the upper bound is exclusive.
+    pub fn latest_compatible_entry(&self, lower: &Version, upper: &Version) -> Option<&Entry> {
+        // Entries are sorted by ascending version, so we iterate backwards to
+        // find the latest applicable one.
+        self.entries
+            .iter()
+            .rev()
+            .filter(|e| *lower <= e.version && e.version < *upper)
+            .next()
+    }
 }
 
 /// Store a manifest locally. Writes first and then swaps the file.
@@ -505,5 +518,50 @@ mod test {
             },
             _ => panic!("Insert should be rejected."),
         }
+    }
+
+    #[test]
+    fn latest_compatible_entry_finds_entry() {
+        let manifest = Manifest {
+            entries: vec![
+                get_test_entry("0.0.0"),
+                get_test_entry("0.1.0"),
+                get_test_entry("0.2.0"),
+                get_test_entry("1.0.0"),
+                get_test_entry("1.0.0-beta.1"),
+                get_test_entry("1.0.0-beta.2"),
+                get_test_entry("1.1.0"),
+                get_test_entry("1.2.0"),
+                get_test_entry("1.2.1"),
+                get_test_entry("2.0.0"),
+            ],
+        };
+
+        let (u, w) = Version::from("*").pattern_to_bounds();
+        let entry = manifest.latest_compatible_entry(&u, &w).unwrap();
+        assert_eq!(entry.version, Version::from("2.0.0"));
+
+        let (u, w) = Version::from("0.*").pattern_to_bounds();
+        let entry = manifest.latest_compatible_entry(&u, &w).unwrap();
+        assert_eq!(entry.version, Version::from("0.2.0"));
+
+        let (u, w) = Version::from("1.*").pattern_to_bounds();
+        let entry = manifest.latest_compatible_entry(&u, &w).unwrap();
+        assert_eq!(entry.version, Version::from("1.2.1"));
+
+        // TODO: Perhaps the least number of parts should sort last, to avoid
+        // this kind of issue? Although that would put 1.0 after 1.0.1 ... But
+        // then again, don't do that. Name the first version 1.0.0 then.
+        let (u, w) = Version::from("1.0.*").pattern_to_bounds();
+        let entry = manifest.latest_compatible_entry(&u, &w).unwrap();
+        assert_eq!(entry.version, Version::from("1.0.0-beta.2"));
+
+        let (u, w) = Version::from("1.2.0").pattern_to_bounds();
+        let entry = manifest.latest_compatible_entry(&u, &w).unwrap();
+        assert_eq!(entry.version, Version::from("1.2.0"));
+
+        let (u, w) = Version::from("3.*").pattern_to_bounds();
+        let entry = manifest.latest_compatible_entry(&u, &w);
+        assert!(entry.is_none());
     }
 }
