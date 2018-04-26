@@ -293,6 +293,7 @@ pub fn store_local(path: &Path, bytes: &[u8]) -> Result<()> {
 #[cfg(test)]
 mod test {
     use ring::signature::Ed25519KeyPair;
+    use ring::test::rand::FixedSliceRandom;
 
     use config::PublicKey;
     use error::Error;
@@ -301,9 +302,15 @@ mod test {
 
     fn get_test_key_pair() -> Ed25519KeyPair {
         // Produce the keypair from the same 32 bytes each time in the tests,
-        // so they are deterministic.
+        // so they are deterministic. From this seed, the following key is
+        // generated:
+        // Secret key: MFMCAQEwBQYDK2VwBCIEIHRlc3Qta2V5LXZlcnktc2VjdXJpdHktc3Vja
+        // C1zYWZloSMDIQCXQPbwnZ+Ihe9Y9t5k/vCRqr50HnkaXbKyKCX2ZAfb2Q==
+        // Public key: l0D28J2fiIXvWPbeZP7wkaq+dB55Gl2ysigl9mQH29k=
         let seed = b"test-key-very-security-such-safe";
-        Ed25519KeyPair::from_seed_unchecked(Input::from(seed)).unwrap()
+        let rng = FixedSliceRandom { bytes: &seed[..] };
+        let pkcs8_bytes = Ed25519KeyPair::generate_pkcs8(&rng).unwrap();
+        Ed25519KeyPair::from_pkcs8(Input::from(&pkcs8_bytes)).unwrap()
     }
 
     fn get_test_public_key() -> PublicKey {
