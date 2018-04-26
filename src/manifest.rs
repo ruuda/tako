@@ -41,6 +41,7 @@ pub struct Entry {
     pub digest: Sha256,
 }
 
+#[derive(Debug, Eq, PartialEq)]
 pub struct Manifest {
     pub entries: Vec<Entry>,
 }
@@ -386,5 +387,22 @@ mod test {
             1.0.0 9641a49d02e90cbb6213f202fb632da70cdc59073d42283cfcdc1d786454f17f\n\n\
             ttye/o4X1aOQQwk8Rf9OHLyqhfhi440qgH8cxw8ol/UgoSj7e1tQbhoA44Q+vEonigVwPMl82j6T0X7hTbziAQ==\n";
         assert_eq!(serialized, expected);
+    }
+
+    #[test]
+    fn serialize_then_parse_is_identity() {
+        let entry0 = Entry {
+            version: String::from("1.0.0"),
+            digest: get_test_sha256(),
+        };
+        let manifest = Manifest {
+            entries: vec![entry0],
+        };
+        let serialized = manifest.serialize(&get_test_key_pair());
+        let deserialized = Manifest::parse(
+            serialized.as_bytes(),
+            &get_test_public_key()
+        ).unwrap();
+        assert_eq!(deserialized, manifest);
     }
 }
