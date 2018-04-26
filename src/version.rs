@@ -26,7 +26,7 @@ enum Part {
 /// following versions are all equal: `1.0.0`, `1_0_0`, and `1.0-0`. To compare
 /// for string equality, use `as_str()`. Semantic equality does take the number
 /// of parts into account. The following versions are not equal: `1`, `1.0`.
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct Version {
     string: String,
     parts: Vec<Part>,

@@ -97,9 +97,7 @@ pub fn store(store: Store) -> Result<()> {
         version: store.version,
         digest: digest,
     };
-    manifest.entries.push(entry);
-
-    // TODO: Sort and deduplicate. Verify that versions do not occur twice.
+    manifest.insert(entry)?;
 
     // And finally store the new manifest. Write to a temporary file, then swap
     // it into place.

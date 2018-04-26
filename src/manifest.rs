@@ -3,6 +3,7 @@
 
 //! Manifest file parser.
 
+use std::cmp::Ordering;
 use std::fs;
 use std::io;
 use std::io::{Read, Write};
@@ -36,15 +37,30 @@ impl AsRef<[u8]> for Sha256 {
     }
 }
 
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Entry {
     pub version: Version,
     pub digest: Sha256,
 }
 
+// Implement Ord manually for Entry; the generated one would also compare
+// digests, which is wasteful, because we should not have duplicate versions.
+
+impl Ord for Entry {
+    fn cmp(&self, other: &Entry) -> Ordering {
+        self.version.cmp(&other.version)
+    }
+}
+
+impl PartialOrd for Entry {
+    fn partial_cmp(&self, other: &Entry) -> Option<Ordering> {
+        self.version.partial_cmp(&other.version)
+    }
+}
+
 #[derive(Debug, Eq, PartialEq)]
 pub struct Manifest {
-    pub entries: Vec<Entry>,
+    entries: Vec<Entry>,
 }
 
 /// Parse header and return the version number.
@@ -269,6 +285,24 @@ impl Manifest {
 
         Ok(Some(Manifest::parse(&manifest_bytes[..], public_key)?))
     }
+
+    /// Insert a new entry, keeping the entries ordered.
+    pub fn insert(&mut self, entry: Entry) -> Result<()> {
+        match self.entries.binary_search(&entry) {
+            Ok(i) => {
+                if self.entries[i].digest != entry.digest {
+                    return Err(Error::Duplicate(entry.version))
+                }
+                if self.entries[i].version.as_str() != entry.version.as_str() {
+                    return Err(Error::Duplicate(entry.version))
+                }
+                // The version existed already, but it is identical to what we
+                // are trying to insert, so that is fine.
+            }
+            Err(i) => self.entries.insert(i, entry),
+        }
+        Ok(())
+    }
 }
 
 /// Store a manifest locally. Writes first and then swaps the file.
@@ -413,5 +447,80 @@ mod test {
             &get_test_public_key()
         ).unwrap();
         assert_eq!(deserialized, manifest);
+    }
+
+    #[test]
+    fn entry_order_does_not_depend_on_insertion_order() {
+        let entry0 = Entry {
+            version: Version::from("0.0.0"),
+            digest: get_test_sha256(),
+        };
+        let entry1 = Entry {
+            version: Version::from("1.0.0"),
+            digest: get_test_sha256(),
+        };
+
+        let mut m_0_1 = Manifest::new();
+        m_0_1.insert(entry0.clone()).unwrap();
+        m_0_1.insert(entry1.clone()).unwrap();
+
+        let mut m_1_0 = Manifest::new();
+        m_1_0.insert(entry1).unwrap();
+        m_1_0.insert(entry0).unwrap();
+
+        assert_eq!(m_0_1, m_1_0);
+    }
+
+    #[test]
+    fn insert_allows_reinsert_if_identical() {
+        let entry = Entry {
+            version: Version::from("0.0.0"),
+            digest: get_test_sha256(),
+        };
+        let mut manifest = Manifest::new();
+        manifest.insert(entry.clone()).unwrap();
+        manifest.insert(entry).unwrap();
+        assert_eq!(manifest.entries.len(), 1);
+    }
+
+    #[test]
+    fn insert_rejects_reinsert_if_digest_differs() {
+        let entry = Entry {
+            version: Version::from("0.0.0"),
+            digest: get_test_sha256(),
+        };
+        let mut entry_alt = entry.clone();
+        // Change the digest.
+        entry_alt.digest.0[8] = 144;
+
+        let mut manifest = Manifest::new();
+        manifest.insert(entry).unwrap();
+        match manifest.insert(entry_alt) {
+            Err(Error::Duplicate(ref v)) if *v == Version::from("0.0.0") => {
+                // This is expected.
+            },
+            _ => panic!("Insert should be rejected."),
+        }
+    }
+
+    #[test]
+    fn insert_rejects_reinsert_if_version_format_differs() {
+        let entry = Entry {
+            version: Version::from("1.0.0"),
+            digest: get_test_sha256(),
+        };
+        let entry_alt = Entry {
+            version: Version::from("1.0-0"),
+            digest: get_test_sha256(),
+        };
+
+        let mut manifest = Manifest::new();
+        manifest.insert(entry).unwrap();
+        match manifest.insert(entry_alt) {
+            Err(Error::Duplicate(ref v)) if *v == Version::from("1.0-0") => {
+                // This is expected.
+            },
+            _ => panic!("Insert should be rejected."),
+        }
     }
 }

@@ -94,9 +94,5 @@ pub fn fetch(config_fname: &str) -> Result<()> {
     // other hand, if an image exists locally, it had better be in the manifest.
     manifest::store_local(&config.destination, &manifest_bytes[..])?;
 
-    for entry in &remote_manifest.entries {
-        println!("entry: {:?}", entry);
-    }
-
     Ok(())
 }

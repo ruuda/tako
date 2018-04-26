@@ -8,6 +8,8 @@ use std::result;
 
 use base64;
 
+use version::Version;
+
 #[derive(Debug)]
 pub enum Error {
     /// Error in config file on a given line.
@@ -36,6 +38,14 @@ pub enum Error {
 
     /// Curl failed in some way.
     DownloadError(String),
+
+    /// Store failed because the version already exists.
+    ///
+    /// This can happen for two reasons:
+    ///
+    ///  * The version exists and has a different digest.
+    ///  * Two versions differ only by separators, e.g. `1.0` and `1-0`.
+    Duplicate(Version),
 
     /// IO error.
     IoError(io::Error),
