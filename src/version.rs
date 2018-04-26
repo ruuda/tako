@@ -6,6 +6,10 @@
 use std::str::FromStr;
 use std::cmp::Ordering;
 
+/// A substring (begin index and end index, inclusive and exclusive).
+#[derive(Copy, Clone, Debug, Eq, PartialEq)]
+struct Slice(u32, u32);
+
 /// Designates a part of a version string.
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
 enum Part {
@@ -17,7 +21,13 @@ enum Part {
     /// We store two 32-bit integers rather than usizes, to ensure that this
     /// variant has the same size as `Num`. A version string is not larger than
     /// 4 GiB anyway, so this is fine.
-    Str(u32, u32),
+    Str(Slice),
+
+    /// A part that sorts after all other parts, used to implement bounds.
+    ///
+    /// This part cannot be constructed by parsing a string, only by appending
+    /// the part to an existing version.
+    Inf,
 }
 
 /// A parsed version string that can be ordered.
@@ -50,7 +60,7 @@ impl Version {
             let n = u64::from_str(&string[begin..end]).unwrap();
             parts.push(Part::Num(n));
         } else {
-            parts.push(Part::Str(begin as u32, end as u32))
+            parts.push(Part::Str(Slice(begin as u32, end as u32)))
         }
     }
 
@@ -79,18 +89,37 @@ impl Version {
         }
     }
 
-    /// Returns the slice of `Part::Str`, or empty string for `Part::Num`.
+    /// Returns the slice of `Part::Str`.
     #[inline]
-    fn part(&self, p: Part) -> &str {
-        match p {
-            Part::Num(..) => "",
-            Part::Str(begin, end) => &self.string[begin as usize..end as usize],
-        }
+    fn part(&self, bounds: Slice) -> &str {
+        &self.string[bounds.0 as usize..bounds.1 as usize]
     }
 
     /// Format the version as a string.
     pub fn as_str(&self) -> &str {
         &self.string[..]
+    }
+
+    /// Given a version pattern, return bounds (u, w) such that (u <= v < w).
+    ///
+    /// Examples:
+    ///
+    ///  * `1.0.* -> (1.0, 1.0.Inf)`
+    ///  * `1.1.0 -> (1.1.0, 1.1.0)`
+    pub fn pattern_to_bounds(mut self) -> (Version, Version) {
+        let is_wildcard = match self.parts.last() {
+            Some(&Part::Str(p)) => self.part(p) == "*",
+            _ => false,
+        };
+
+        if !is_wildcard {
+            (self.clone(), self)
+        } else {
+            self.parts.pop();
+            let mut upper = self.clone();
+            upper.parts.push(Part::Inf);
+            (self, upper)
+        }
     }
 }
 
@@ -108,12 +137,10 @@ impl PartialEq for Version {
 
         for (p, q) in self.parts.iter().zip(other.parts.iter()) {
             match (*p, *q) {
-                (Part::Num(..), Part::Str(..)) => return false,
-                (Part::Str(..), Part::Num(..)) => return false,
-                (Part::Num(x), Part::Num(y)) if x != y => return false,
-                (Part::Num(_), Part::Num(_)) => continue,
-                (str_a, str_b) if self.part(str_a) != other.part(str_b) => return false,
-                _ => continue,
+                (Part::Num(x), Part::Num(y)) if x == y => continue,
+                (Part::Str(a), Part::Str(b)) if self.part(a) == other.part(b) => continue,
+                (Part::Inf, Part::Inf) => continue,
+                _ => return false,
             }
         }
 
@@ -142,8 +169,12 @@ impl Ord for Version {
                 (Part::Num(x), Part::Num(y)) if x == y => continue,
                 (Part::Num(x), Part::Num(y)) => return x.cmp(&y),
                 // String parts order lexicographically, ascending.
-                (str_a, str_b) if self.part(str_a) == other.part(str_b) => continue,
-                (str_a, str_b) => return self.part(str_a).cmp(other.part(str_b)),
+                (Part::Str(a), Part::Str(b)) if self.part(a) == other.part(b) => continue,
+                (Part::Str(a), Part::Str(b)) => return self.part(a).cmp(other.part(b)),
+                // Inf sorts after anything apart from itself.
+                (Part::Inf, Part::Inf) => continue,
+                (_, Part::Inf) => return Ordering::Less,
+                (Part::Inf, _) => return Ordering::Greater,
             }
         }
 
@@ -155,7 +186,7 @@ impl Ord for Version {
 
 #[cfg(test)]
 mod test {
-    use super::{Part, Version};
+    use super::{Part, Slice, Version};
 
     #[test]
     fn version_new_handles_empty() {
@@ -172,7 +203,7 @@ mod test {
     #[test]
     fn version_new_handles_single_string_component() {
         let v = Version::from("44cc");
-        assert_eq!(v.parts[0], Part::Str(0, 4));
+        assert_eq!(v.parts[0], Part::Str(Slice(0, 4)));
     }
 
     #[test]
