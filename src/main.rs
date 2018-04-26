@@ -26,6 +26,7 @@ mod fetch;
 mod manifest;
 mod store;
 mod util;
+mod version;
 
 fn run_init(config_fname: &String) {
     println!("Run for {}.", config_fname);
