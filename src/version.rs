@@ -4,9 +4,10 @@
 //! Version parsing and ordering utilities.
 
 use std::str::FromStr;
+use std::cmp::Ordering;
 
 /// Designates a part of a version string.
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Copy, Clone, Debug, Eq, PartialEq)]
 enum Part {
     /// A numeric part.
     Num(u64),
@@ -20,7 +21,7 @@ enum Part {
 }
 
 /// A parsed version string that can be ordered.
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug)]
 struct Version {
     string: String,
     parts: Vec<Part>,
@@ -72,6 +73,66 @@ impl Version {
             parts: parts,
         }
     }
+
+    /// Returns the slice of `Part::Str`, or empty string for `Part::Num`.
+    #[inline]
+    fn part(&self, p: Part) -> &str {
+        match p {
+            Part::Num(..) => "",
+            Part::Str(begin, end) => &self.string[begin as usize..end as usize],
+        }
+    }
+}
+
+impl PartialEq for Version {
+    fn eq(&self, other: &Version) -> bool {
+        if self.parts.len() != other.parts.len() {
+            return false
+        }
+
+        for (p, q) in self.parts.iter().zip(other.parts.iter()) {
+            match (*p, *q) {
+                (Part::Num(..), Part::Str(..)) => return false,
+                (Part::Str(..), Part::Num(..)) => return false,
+                (Part::Num(x), Part::Num(y)) if x != y => return false,
+                (Part::Num(_), Part::Num(_)) => continue,
+                (str_a, str_b) if self.part(str_a) != other.part(str_b) => return false,
+                _ => continue,
+            }
+        }
+
+        true
+    }
+}
+
+impl Eq for Version { }
+
+impl PartialOrd for Version {
+    fn partial_cmp(&self, other: &Version) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl Ord for Version {
+    fn cmp(&self, other: &Version) -> Ordering {
+        for (p, q) in self.parts.iter().zip(other.parts.iter()) {
+            match (*p, *q) {
+                // Arbitrary choice: numeric parts order before string parts.
+                (Part::Num(..), Part::Str(..)) => return Ordering::Less,
+                (Part::Str(..), Part::Num(..)) => return Ordering::Greater,
+                // Numeric parts order just by the number.
+                (Part::Num(x), Part::Num(y)) if x == y => continue,
+                (Part::Num(x), Part::Num(y)) => return x.cmp(&y),
+                // String parts order lexicographically, ascending.
+                (str_a, str_b) if self.part(str_a) == other.part(str_b) => continue,
+                (str_a, str_b) => return self.part(str_a).cmp(self.part(str_b)),
+            }
+        }
+
+        // If all shared parts are equal, compare by number of parts (least
+        // number of parts orders before most number of parts).
+        self.parts.len().cmp(&other.parts.len())
+    }
 }
 
 #[cfg(test)]
@@ -94,5 +155,46 @@ mod test {
     fn version_new_handles_single_string_component() {
         let v = Version::new("44cc".to_string());
         assert_eq!(v.parts[0], Part::Str(0, 4));
+    }
+
+    #[test]
+    fn version_new_handles_two_components() {
+        let u = Version::new("1.0".to_string());
+        let v = Version::new("1-0".to_string());
+        let w = Version::new("1_0".to_string());
+        assert_eq!(&u.parts, &[Part::Num(1), Part::Num(0)]);
+        assert_eq!(&v.parts, &u.parts);
+        assert_eq!(&w.parts, &u.parts);
+    }
+
+    #[test]
+    fn version_eq_ignores_separator() {
+        let u = Version::new("1.0".to_string());
+        let v = Version::new("1-0".to_string());
+        let w = Version::new("1_0".to_string());
+        assert_eq!(u, v);
+        assert_eq!(v, w);
+    }
+
+    #[test]
+    fn version_eq_handles_pairwise_inequal() {
+        let versions = [
+            Version::new("1".to_string()),
+            Version::new("2".to_string()),
+            Version::new("a".to_string()),
+            Version::new("1.1".to_string()),
+            Version::new("1.2".to_string()),
+            Version::new("1.a".to_string()),
+            Version::new("1.0".to_string()),
+            Version::new("2.0".to_string()),
+            Version::new("a.0".to_string()),
+        ];
+        for i in 0..versions.len() {
+            for j in 0..versions.len() {
+                if i != j {
+                    assert_ne!(versions[i], versions[j]);
+                }
+            }
+        }
     }
 }
