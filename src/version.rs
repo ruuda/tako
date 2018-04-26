@@ -117,15 +117,17 @@ impl Ord for Version {
     fn cmp(&self, other: &Version) -> Ordering {
         for (p, q) in self.parts.iter().zip(other.parts.iter()) {
             match (*p, *q) {
-                // Arbitrary choice: numeric parts order before string parts.
-                (Part::Num(..), Part::Str(..)) => return Ordering::Less,
-                (Part::Str(..), Part::Num(..)) => return Ordering::Greater,
+                // Semi-arbitrary choice: string parts order before numeric
+                // parts. This is because "1.0-a" feels like it should be before
+                // "1.0.1". But really, just don't do that kind of thing ...
+                (Part::Num(..), Part::Str(..)) => return Ordering::Greater,
+                (Part::Str(..), Part::Num(..)) => return Ordering::Less,
                 // Numeric parts order just by the number.
                 (Part::Num(x), Part::Num(y)) if x == y => continue,
                 (Part::Num(x), Part::Num(y)) => return x.cmp(&y),
                 // String parts order lexicographically, ascending.
                 (str_a, str_b) if self.part(str_a) == other.part(str_b) => continue,
-                (str_a, str_b) => return self.part(str_a).cmp(self.part(str_b)),
+                (str_a, str_b) => return self.part(str_a).cmp(other.part(str_b)),
             }
         }
 
@@ -179,21 +181,61 @@ mod test {
     #[test]
     fn version_eq_handles_pairwise_inequal() {
         let versions = [
+            Version::new("0".to_string()),
             Version::new("1".to_string()),
             Version::new("2".to_string()),
             Version::new("a".to_string()),
+            Version::new("0.0".to_string()),
             Version::new("1.1".to_string()),
             Version::new("1.2".to_string()),
             Version::new("1.a".to_string()),
             Version::new("1.0".to_string()),
             Version::new("2.0".to_string()),
             Version::new("a.0".to_string()),
+            Version::new("0.0.0".to_string()),
         ];
         for i in 0..versions.len() {
             for j in 0..versions.len() {
                 if i != j {
                     assert_ne!(versions[i], versions[j]);
+                } else {
+                    assert_eq!(versions[i], versions[j]);
                 }
+            }
+        }
+    }
+
+    #[test]
+    fn version_cmp_handles_pairwise_less() {
+        // These versions are ordered in ascending order.
+        let versions = [
+            Version::new("".to_string()),
+            Version::new("a".to_string()),
+            Version::new("a.b".to_string()),
+            Version::new("a.0".to_string()),
+            Version::new("a.0.0".to_string()),
+            Version::new("a.1".to_string()),
+            Version::new("b".to_string()),
+            Version::new("b.0".to_string()),
+            Version::new("b.1.3".to_string()),
+            Version::new("c".to_string()),
+            Version::new("0".to_string()),
+            Version::new("0.a".to_string()),
+            Version::new("0.0".to_string()),
+            Version::new("0.1".to_string()),
+            Version::new("0.1-a".to_string()),
+            Version::new("0.1.1".to_string()),
+            Version::new("1".to_string()),
+            Version::new("1.0".to_string()),
+            Version::new("1.0.1".to_string()),
+            Version::new("1.1".to_string()),
+            Version::new("2".to_string()),
+        ];
+        for i in 0..versions.len() {
+            for j in 0..versions.len() {
+                let a = &versions[i];
+                let b = &versions[j];
+                assert_eq!(a.cmp(&b), i.cmp(&j), "{:?} vs {:?}", a, b);
             }
         }
     }
