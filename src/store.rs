@@ -90,7 +90,7 @@ pub fn store(store: Store) -> Result<()> {
     perms.set_readonly(true);
     fs::set_permissions(&target_fname, perms)?;
 
-    println!("{} -> {}", store.version, digest_hex);
+    println!("{} -> {}", store.version.as_str(), digest_hex);
 
     // Add the new entry to the manifest.
     let entry = Entry {

@@ -17,6 +17,7 @@ use untrusted::Input;
 use config::PublicKey;
 use error::{Error, Result};
 use util;
+use version::Version;
 
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub struct Sha256([u8; 32]);
@@ -37,7 +38,7 @@ impl AsRef<[u8]> for Sha256 {
 
 #[derive(Debug, Eq, PartialEq)]
 pub struct Entry {
-    pub version: String,
+    pub version: Version,
     pub digest: Sha256,
 }
 
@@ -109,7 +110,7 @@ fn parse_entry(line: &[u8]) -> Result<Entry> {
     }
 
     let entry = Entry {
-        version: version,
+        version: Version::new(version),
         digest: Sha256(sha256),
     };
 
@@ -233,7 +234,7 @@ impl Manifest {
 
         out.push_str("Tako Manifest 1\n\n");
         for entry in &self.entries {
-            out.push_str(&entry.version);
+            out.push_str(entry.version.as_str());
             out.push(' ');
             util::append_hex(&mut out, &entry.digest.as_ref());
             out.push('\n');
@@ -294,11 +295,12 @@ pub fn store_local(path: &Path, bytes: &[u8]) -> Result<()> {
 mod test {
     use ring::signature::Ed25519KeyPair;
     use ring::test::rand::FixedSliceRandom;
+    use untrusted::Input;
 
     use config::PublicKey;
     use error::Error;
     use super::{Entry, Manifest, Sha256, parse_entry};
-    use untrusted::Input;
+    use version::Version;
 
     fn get_test_key_pair() -> Ed25519KeyPair {
         // Produce the keypair from the same 32 bytes each time in the tests,
@@ -331,7 +333,7 @@ mod test {
     fn parse_entry_parses_entry() {
         let raw = b"1.1.0 9641a49d02e90cbb6213f202fb632da70cdc59073d42283cfcdc1d786454f17f";
         let entry = parse_entry(&raw[..]).unwrap();
-        assert_eq!(&entry.version[..], "1.1.0");
+        assert_eq!(&entry.version.as_str(), &"1.1.0");
         assert_eq!(entry.digest, get_test_sha256());
     }
 
@@ -383,7 +385,7 @@ mod test {
     #[test]
     fn serialize_outputs_manifest() {
         let entry0 = Entry {
-            version: String::from("1.0.0"),
+            version: Version::from("1.0.0"),
             digest: get_test_sha256(),
         };
         let manifest = Manifest {
@@ -399,7 +401,7 @@ mod test {
     #[test]
     fn serialize_then_parse_is_identity() {
         let entry0 = Entry {
-            version: String::from("1.0.0"),
+            version: Version::from("1.0.0"),
             digest: get_test_sha256(),
         };
         let manifest = Manifest {

@@ -22,7 +22,7 @@ enum Part {
 
 /// A parsed version string that can be ordered.
 #[derive(Debug)]
-struct Version {
+pub struct Version {
     string: String,
     parts: Vec<Part>,
 }
@@ -81,6 +81,17 @@ impl Version {
             Part::Num(..) => "",
             Part::Str(begin, end) => &self.string[begin as usize..end as usize],
         }
+    }
+
+    /// Format the version as a string.
+    pub fn as_str(&self) -> &str {
+        &self.string[..]
+    }
+}
+
+impl<'a> From<&'a str> for Version {
+    fn from(v: &'a str) -> Version {
+        Version::new(String::from(v))
     }
 }
 

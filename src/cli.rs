@@ -16,6 +16,8 @@ use std::fmt;
 use std::path::PathBuf;
 use std::vec;
 
+use version::Version;
+
 const USAGE: &'static str = "
 Tako -- Take container image.
 
@@ -78,7 +80,7 @@ pub struct Store {
     pub secret_key: Option<String>,
     pub secret_key_path: Option<PathBuf>,
     pub output_path: PathBuf,
-    pub version: String,
+    pub version: Version,
     pub image_path: PathBuf,
 }
 
@@ -312,7 +314,7 @@ fn parse_store(mut args: ArgIter) -> Result<Cmd, String> {
         secret_key: secret_key,
         secret_key_path: secret_key_path.map(PathBuf::from),
         output_path: PathBuf::from(output_path),
-        version: version,
+        version: Version::new(version),
         image_path: PathBuf::from(image_path),
     };
 
@@ -365,6 +367,7 @@ fn unexpected<T>(arg: Arg<String>) -> Result<T, String> {
 mod test {
     use std::path::PathBuf;
     use super::{Cmd, Store, parse};
+    use version::Version;
 
     fn parse_slice(args: &[&'static str]) -> Result<Cmd, String> {
         let argv = args.iter().map(|s| String::from(*s)).collect();
@@ -432,7 +435,7 @@ mod test {
             secret_key: Some("secret".to_string()),
             secret_key_path: None,
             output_path: PathBuf::from("/tmp"),
-            version: "3.7.5".to_string(),
+            version: Version::from("3.7.5"),
             image_path: PathBuf::from("out.img"),
         };
         let expected = Ok(Cmd::Store(store));
