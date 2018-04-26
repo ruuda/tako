@@ -21,6 +21,11 @@ enum Part {
 }
 
 /// A parsed version string that can be ordered.
+///
+/// Equality on versions is semantic equality, not string equality. The
+/// following versions are all equal: `1.0.0`, `1_0_0`, and `1.0-0`. To compare
+/// for string equality, use `as_str()`. Semantic equality does take the number
+/// of parts into account. The following versions are not equal: `1`, `1.0`.
 #[derive(Debug)]
 pub struct Version {
     string: String,
@@ -154,27 +159,27 @@ mod test {
 
     #[test]
     fn version_new_handles_empty() {
-        let v = Version::new("".to_string());
+        let v = Version::from("");
         assert_eq!(v.parts.len(), 0);
     }
 
     #[test]
     fn version_new_handles_single_numeric_component() {
-        let v = Version::new("13".to_string());
+        let v = Version::from("13");
         assert_eq!(v.parts[0], Part::Num(13));
     }
 
     #[test]
     fn version_new_handles_single_string_component() {
-        let v = Version::new("44cc".to_string());
+        let v = Version::from("44cc");
         assert_eq!(v.parts[0], Part::Str(0, 4));
     }
 
     #[test]
     fn version_new_handles_two_components() {
-        let u = Version::new("1.0".to_string());
-        let v = Version::new("1-0".to_string());
-        let w = Version::new("1_0".to_string());
+        let u = Version::from("1.0");
+        let v = Version::from("1-0");
+        let w = Version::from("1_0");
         assert_eq!(&u.parts, &[Part::Num(1), Part::Num(0)]);
         assert_eq!(&v.parts, &u.parts);
         assert_eq!(&w.parts, &u.parts);
@@ -182,28 +187,48 @@ mod test {
 
     #[test]
     fn version_eq_ignores_separator() {
-        let u = Version::new("1.0".to_string());
-        let v = Version::new("1-0".to_string());
-        let w = Version::new("1_0".to_string());
+        let u = Version::from("1.0");
+        let v = Version::from("1-0");
+        let w = Version::from("1_0");
         assert_eq!(u, v);
         assert_eq!(v, w);
     }
 
     #[test]
+    fn version_eq_handles_pairwise_equal() {
+        let versions = [
+            Version::from("1.0.0"),
+            Version::from("1_0.0"),
+            Version::from("1.0-0"),
+            Version::from("1.0.000"),
+            Version::from("001.0.000"),
+            Version::from("1.0.0."),
+            Version::from("1.0.0____"),
+            Version::from("1..0.0"),
+            Version::from("1._.0.0"),
+        ];
+        for i in 0..versions.len() {
+            for j in 0..versions.len() {
+                assert_eq!(versions[i], versions[j]);
+            }
+        }
+    }
+
+    #[test]
     fn version_eq_handles_pairwise_inequal() {
         let versions = [
-            Version::new("0".to_string()),
-            Version::new("1".to_string()),
-            Version::new("2".to_string()),
-            Version::new("a".to_string()),
-            Version::new("0.0".to_string()),
-            Version::new("1.1".to_string()),
-            Version::new("1.2".to_string()),
-            Version::new("1.a".to_string()),
-            Version::new("1.0".to_string()),
-            Version::new("2.0".to_string()),
-            Version::new("a.0".to_string()),
-            Version::new("0.0.0".to_string()),
+            Version::from("0"),
+            Version::from("1"),
+            Version::from("2"),
+            Version::from("a"),
+            Version::from("0.0"),
+            Version::from("1.1"),
+            Version::from("1.2"),
+            Version::from("1.a"),
+            Version::from("1.0"),
+            Version::from("2.0"),
+            Version::from("a.0"),
+            Version::from("0.0.0"),
         ];
         for i in 0..versions.len() {
             for j in 0..versions.len() {
@@ -220,27 +245,27 @@ mod test {
     fn version_cmp_handles_pairwise_less() {
         // These versions are ordered in ascending order.
         let versions = [
-            Version::new("".to_string()),
-            Version::new("a".to_string()),
-            Version::new("a.b".to_string()),
-            Version::new("a.0".to_string()),
-            Version::new("a.0.0".to_string()),
-            Version::new("a.1".to_string()),
-            Version::new("b".to_string()),
-            Version::new("b.0".to_string()),
-            Version::new("b.1.3".to_string()),
-            Version::new("c".to_string()),
-            Version::new("0".to_string()),
-            Version::new("0.a".to_string()),
-            Version::new("0.0".to_string()),
-            Version::new("0.1".to_string()),
-            Version::new("0.1-a".to_string()),
-            Version::new("0.1.1".to_string()),
-            Version::new("1".to_string()),
-            Version::new("1.0".to_string()),
-            Version::new("1.0.1".to_string()),
-            Version::new("1.1".to_string()),
-            Version::new("2".to_string()),
+            Version::from(""),
+            Version::from("a"),
+            Version::from("a.b"),
+            Version::from("a.0"),
+            Version::from("a.0.0"),
+            Version::from("a.1"),
+            Version::from("b"),
+            Version::from("b.0"),
+            Version::from("b.1.3"),
+            Version::from("c"),
+            Version::from("0"),
+            Version::from("0.a"),
+            Version::from("0.0"),
+            Version::from("0.1"),
+            Version::from("0.1-a"),
+            Version::from("0.1.1"),
+            Version::from("1"),
+            Version::from("1.0"),
+            Version::from("1.0.1"),
+            Version::from("1.1"),
+            Version::from("2"),
         ];
         for i in 0..versions.len() {
             for j in 0..versions.len() {
