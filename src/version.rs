@@ -115,7 +115,7 @@ impl Version {
     ///
     /// Note that the formatting of versions involving Min and Max is incorrect,
     /// these should not be printed directly.
-    pub fn pattern_to_bounds(mut self) -> (Version, Version) {
+    pub fn pattern_to_bounds(&self) -> (Version, Version) {
         let is_wildcard = match self.parts.last() {
             Some(&Part::Str(p)) => self.part(p) == "*",
             _ => false,
@@ -125,14 +125,14 @@ impl Version {
         let mut upper;
 
         if is_wildcard {
-            self.parts.pop();
             upper = self.clone();
-            lower = self;
+            upper.parts.pop();
+            lower = upper.clone();
             lower.parts.push(Part::Min);
             upper.parts.push(Part::Max);
         } else {
             upper = self.clone();
-            lower = self;
+            lower = self.clone();
             upper.parts.push(Part::Min);
         }
         (lower, upper)

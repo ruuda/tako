@@ -47,6 +47,11 @@ pub enum Error {
     ///  * Two versions differ only by separators, e.g. `1.0` and `1-0`.
     Duplicate(Version),
 
+    /// There exists no version that matches the required bounds.
+    ///
+    /// E.g. we have 1.0, 1.1, and 1.2, but we require 2.*.
+    NoCandidate,
+
     /// IO error.
     IoError(io::Error),
 }

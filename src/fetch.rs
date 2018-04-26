@@ -12,6 +12,7 @@ use curl;
 use error::{Error, Result};
 use manifest;
 use manifest::Manifest;
+use util;
 
 fn load_config(config_fname: &str) -> Result<Config> {
     let f = fs::File::open(config_fname)?;
@@ -55,11 +56,8 @@ fn store_local_manifest(config: &Config, bytes: &[u8]) -> Result<()> {
     Ok(())
 }
 
-/// Check for, download, and apply updates as given in the config.
-pub fn fetch(config_fname: &str) -> Result<()> {
-    let config = load_config(config_fname)?;
-    println!("config: {:?}", config);
-
+/// Fetch the remote manifest, store it locally if it is valid, and return it.
+pub fn fetch_manifest(config: &Config) -> Result<Manifest> {
     // TODO: If we fail to load this manifest, it is not clear to the user
     // that this is about the local manifest, rather than the remote one. We
     // should extend the error type to include this info.
@@ -93,6 +91,26 @@ pub fn fetch(config_fname: &str) -> Result<()> {
     // more entries in there even if we don't have the images yet. But on the
     // other hand, if an image exists locally, it had better be in the manifest.
     manifest::store_local(&config.destination, &manifest_bytes[..])?;
+
+    Ok(remote_manifest)
+}
+
+/// Check for, download, and apply updates as given in the config.
+pub fn fetch(config_fname: &str) -> Result<()> {
+    let config = load_config(config_fname)?;
+    println!("config: {:?}", config);
+
+    let manifest = fetch_manifest(&config)?;
+
+    let (lower, upper) = config.version.pattern_to_bounds();
+    let candidate = manifest.latest_compatible_entry(&lower, &upper).ok_or(Error::NoCandidate)?;
+
+    let mut uri = config.origin.to_string();
+    if !uri.ends_with("/") { uri.push('/'); }
+    uri.push_str("store/");
+    util::append_hex(&mut uri, candidate.digest.as_ref());
+
+    println!("Fetching {} from {} ...", candidate.version.as_str(), uri);
 
     Ok(())
 }
