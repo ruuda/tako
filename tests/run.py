@@ -66,14 +66,12 @@ assert os.path.exists('tests/scratch/bar-origin/store/'
 print('tako fetch')
 
 print(' * fetches the manifest into an empty destination')
-# TODO: Fix tests.
-# exec(['target/debug/tako', 'fetch', 'tests/config/foo.tako'])
-# assert os.path.exists('tests/scratch/foo/manifest')
+exec(['target/debug/tako', 'fetch', 'tests/config/foo.tako'])
+assert os.path.exists('tests/scratch/foo/manifest')
 
 print(' * fetches the manifest into an non-empty destination')
-# TODO: Fix tests.
-# exec(['target/debug/tako', 'fetch', 'tests/config/foo.tako'])
-# assert os.path.exists('tests/scratch/foo/manifest')
+exec(['target/debug/tako', 'fetch', 'tests/config/foo.tako'])
+assert os.path.exists('tests/scratch/foo/manifest')
 
 print(' * fetches a previously stored manifest')
 exec(['target/debug/tako', 'fetch', 'tests/config/bar.tako'])
