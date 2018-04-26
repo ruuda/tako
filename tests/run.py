@@ -41,7 +41,8 @@ secret_key = ('MFMCAQEwBQYDK2VwBCIEIOOLlPLpuO1GOp+ZrvzKNXf8NpA8OtcRcpW2/clbJYyq'
               'oSMDIQCocvTcH9bTcmbVaZ//EpXqD+0hwb56WG/3JWjyIc6tdg==')
 
 # Clean up results from a previous test run, if there are any.
-shutil.rmtree('tests/scratch')
+shutil.rmtree('tests/scratch', ignore_errors=True)
+assert not os.path.exists('tests/scratch')
 os.mkdir('tests/scratch')
 os.mkdir('tests/scratch/foo')
 os.mkdir('tests/scratch/bar')
