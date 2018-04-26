@@ -23,11 +23,17 @@ enum Part {
     /// 4 GiB anyway, so this is fine.
     Str(Slice),
 
+    /// A part that sorts before all other parts, used to implement bounds.
+    ///
+    /// This part cannot be constructed by parsing a string, only by appending
+    /// the part to an existing version.
+    Min,
+
     /// A part that sorts after all other parts, used to implement bounds.
     ///
     /// This part cannot be constructed by parsing a string, only by appending
     /// the part to an existing version.
-    Inf,
+    Max,
 }
 
 /// A parsed version string that can be ordered.
@@ -104,22 +110,32 @@ impl Version {
     ///
     /// Examples:
     ///
-    ///  * `1.0.* -> (1.0, 1.0.Inf)`
-    ///  * `1.1.0 -> (1.1.0, 1.1.0)`
+    ///  * `1.0.* -> (1.0.Min, 1.0.Max)`
+    ///  * `1.1.0 -> (1.1.0, 1.1.0.Min)`
+    ///
+    /// Note that the formatting of versions involving Min and Max is incorrect,
+    /// these should not be printed directly.
     pub fn pattern_to_bounds(mut self) -> (Version, Version) {
         let is_wildcard = match self.parts.last() {
             Some(&Part::Str(p)) => self.part(p) == "*",
             _ => false,
         };
 
-        if !is_wildcard {
-            (self.clone(), self)
-        } else {
+        let mut lower;
+        let mut upper;
+
+        if is_wildcard {
             self.parts.pop();
-            let mut upper = self.clone();
-            upper.parts.push(Part::Inf);
-            (self, upper)
+            upper = self.clone();
+            lower = self;
+            lower.parts.push(Part::Min);
+            upper.parts.push(Part::Max);
+        } else {
+            upper = self.clone();
+            lower = self;
+            upper.parts.push(Part::Min);
         }
+        (lower, upper)
     }
 }
 
@@ -139,7 +155,8 @@ impl PartialEq for Version {
             match (*p, *q) {
                 (Part::Num(x), Part::Num(y)) if x == y => continue,
                 (Part::Str(a), Part::Str(b)) if self.part(a) == other.part(b) => continue,
-                (Part::Inf, Part::Inf) => continue,
+                (Part::Min, Part::Min) => continue,
+                (Part::Max, Part::Max) => continue,
                 _ => return false,
             }
         }
@@ -171,10 +188,14 @@ impl Ord for Version {
                 // String parts order lexicographically, ascending.
                 (Part::Str(a), Part::Str(b)) if self.part(a) == other.part(b) => continue,
                 (Part::Str(a), Part::Str(b)) => return self.part(a).cmp(other.part(b)),
-                // Inf sorts after anything apart from itself.
-                (Part::Inf, Part::Inf) => continue,
-                (_, Part::Inf) => return Ordering::Less,
-                (Part::Inf, _) => return Ordering::Greater,
+                // Min sorts before anything apart from itself.
+                (Part::Min, Part::Min) => continue,
+                (_, Part::Min) => return Ordering::Greater,
+                (Part::Min, _) => return Ordering::Less,
+                // Max sorts after anything apart from itself.
+                (Part::Max, Part::Max) => continue,
+                (_, Part::Max) => return Ordering::Less,
+                (Part::Max, _) => return Ordering::Greater,
             }
         }
 
