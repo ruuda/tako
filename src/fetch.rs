@@ -15,11 +15,8 @@ use manifest::Manifest;
 fn load_config(config_fname: &str) -> Result<Config> {
     let f = fs::File::open(config_fname)?;
     let buf_reader = io::BufReader::new(f);
-    let mut lines = Vec::new();
-    for line in buf_reader.lines() {
-        lines.push(line?);
-    }
-    Config::parse(lines.iter())
+    let lines: io::Result<Vec<String>> = buf_reader.lines().collect();
+    Config::parse(lines?.iter())
 }
 
 /// Load a locally stored manifest.
