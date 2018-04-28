@@ -3,8 +3,10 @@
 
 //! Version parsing and ordering utilities.
 
-use std::str::FromStr;
 use std::cmp::Ordering;
+use std::iter;
+use std::slice;
+use std::str::FromStr;
 
 /// A substring (begin index and end index, inclusive and exclusive).
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
@@ -145,13 +147,25 @@ impl<'a> From<&'a str> for Version {
     }
 }
 
+// I want impl trait ...
+type ZeroPaddedIter<'a> = iter::Take<iter::Chain<slice::Iter<'a, Part>, iter::Repeat<&'a Part>>>;
+
+const ZERO_PART: Part = Part::Num(0);
+
+fn parts_zero_padded<'a>(p: &'a Version, q: &'a Version)
+    -> iter::Zip<ZeroPaddedIter<'a>, ZeroPaddedIter<'a>>
+{
+    let n = p.parts.len().max(q.parts.len());
+    let pad_p = iter::repeat(&ZERO_PART);
+    let pad_q = iter::repeat(&ZERO_PART);
+    let ps = p.parts.iter().chain(pad_p).take(n);
+    let qs = q.parts.iter().chain(pad_q).take(n);
+    ps.zip(qs)
+}
+
 impl PartialEq for Version {
     fn eq(&self, other: &Version) -> bool {
-        if self.parts.len() != other.parts.len() {
-            return false
-        }
-
-        for (p, q) in self.parts.iter().zip(other.parts.iter()) {
+        for (p, q) in parts_zero_padded(self, other) {
             match (*p, *q) {
                 (Part::Num(x), Part::Num(y)) if x == y => continue,
                 (Part::Str(a), Part::Str(b)) if self.part(a) == other.part(b) => continue,
@@ -258,6 +272,12 @@ mod test {
             Version::from("1.0.0____"),
             Version::from("1..0.0"),
             Version::from("1._.0.0"),
+            Version::from("1"),
+            Version::from("1.0"),
+            Version::from("1.0.0.0"),
+            Version::from("1.0.0.0.0"),
+            Version::from("1.0-"),
+            Version::from("1.0."),
         ];
         for i in 0..versions.len() {
             for j in 0..versions.len() {
@@ -271,16 +291,14 @@ mod test {
         let versions = [
             Version::from("0"),
             Version::from("1"),
-            Version::from("2"),
             Version::from("a"),
-            Version::from("0.0"),
             Version::from("1.1"),
             Version::from("1.2"),
             Version::from("1.a"),
-            Version::from("1.0"),
+            Version::from("1.0.b"),
             Version::from("2.0"),
-            Version::from("a.0"),
-            Version::from("0.0.0"),
+            Version::from("a.1"),
+            Version::from("0.0.0.c"),
         ];
         for i in 0..versions.len() {
             for j in 0..versions.len() {
