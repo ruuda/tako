@@ -47,14 +47,21 @@ Some examples:
 
 ## Patterns
 
-Compatible versions are selected by matching version numbers against a **version
-pattern**. A pattern is a version string that may end in a wildcard.
+Compatible versions are selected by matching version numbers against a pattern.
+A pattern is either a **wildcard pattern** or a **bounds pattern**.
+
+ * A wildcard pattern is a version string that may end in `*`.
+ * A bounds pattern specifies an inclusive lower bound and an exclusive upper
+   bound separated by ` <= v < `.
 
 Some examples:
 
  * `1.*` matches `1.0`, `1.1`, `1.2`, etc., but not `2.0`, `0.1`, nor `1`.
  * `*` matches any version.
- * `1.13.7` matches only `1.13.7`.
+ * `1.13.7` matches only `1.13.7`. Such a pattern can be used for
+   version pinning.
+ * `1.0 <= v < 2.0` is the same as `1.*`.
+ * `2.3 <= v < 3.0` matches versions that are [semver][semver]-compatible
+   with 2.3.
 
 [semver]: https://semver.org/
-
