@@ -8,6 +8,8 @@ use std::os::raw;
 use std::slice;
 use std::ffi::{CStr, CString};
 
+use error::{Error, Result};
+
 enum Curl {}
 
 type CurlOption = raw::c_int;
@@ -33,7 +35,7 @@ extern {
     fn curl_easy_recv(curl: *mut Curl, buffer: *mut raw::c_void, buflen: usize, n: *mut usize) -> CurlCode;
 }
 
-type Handler = Box<FnMut(&[u8])>;
+type Handler<'a> = Box<'a + FnMut(&[u8])>;
 
 type WriteCallback = extern "C" fn(*mut raw::c_char, usize, usize, *mut raw::c_void) -> usize;
 
@@ -59,7 +61,7 @@ impl Handle {
         }
     }
 
-    pub fn download<F>(&mut self, uri: &str, on_data: F) -> Result<(), String> where F: 'static + FnMut(&[u8]) {
+    pub fn download<'a, F>(&'a mut self, uri: &str, on_data: F) -> Result<()> where F: 'a + FnMut(&[u8]) {
         // Box the handler, so we have a function to pass as userdata. We need
         // to box the handler, and then we pass a pointer to *this box on the
         // stack* as userdata. We cannot directly pass on_data as userdata,
@@ -102,7 +104,7 @@ impl Handle {
             if curl_easy_perform(self.curl) != 0 {
                 // Error. There should be something in the buffer.
                 let msg = CStr::from_ptr(error_buffer.as_ptr());
-                return Err(msg.to_string_lossy().into_owned());
+                return Err(Error::DownloadError(msg.to_string_lossy().into_owned()));
             }
         }
 

@@ -10,11 +10,11 @@ use base64;
 use error::{Error, Result};
 
 #[derive(Debug)]
-struct Config {
-    origin: String,
-    public_key: [u8; 32],
-    destination: PathBuf,
-    restart_units: Vec<String>,
+pub struct Config {
+    pub origin: String,
+    pub public_key: [u8; 32],
+    pub destination: PathBuf,
+    pub restart_units: Vec<String>,
 }
 
 fn parse_public_key(lineno: usize, key_base64: &str) -> Result<[u8; 32]> {
@@ -48,6 +48,12 @@ impl Config {
 
             // Allow empty lines in the config file.
             if line.len() == 0 {
+                continue
+            }
+
+            // Skip lines starting with '#' or ';' to allow comments. This is
+            // consistent with systemd's comment syntax.
+            if line.starts_with("#") || line.starts_with(";") {
                 continue
             }
 
@@ -139,6 +145,18 @@ mod test {
         ];
         let config = Config::parse(&config_lines).unwrap();
         assert_eq!(&config.restart_units[..], &["foo", "bar"]);
+    }
+
+    #[test]
+    pub fn parse_skips_comments() {
+        let config_lines = [
+            "Origin=https://images.example.com/app-foo",
+            "# This is a comment.",
+            "PublicKey=8+r5DKNN/cwI+h0oHxMtgdyND3S/5xDLHQu0hFUmq+g=",
+            "; This is also a comment.",
+            "Destination=/var/lib/images/app-foo",
+        ];
+        assert!(Config::parse(&config_lines).is_ok());
     }
 
     // TODO: Test error cases.

@@ -14,6 +14,7 @@ mod cli;
 mod config;
 mod curl;
 mod error;
+mod fetch;
 mod manifest;
 
 fn run_init(config_fname: &String) {
@@ -28,6 +29,7 @@ fn run_init(config_fname: &String) {
 
 fn run_fetch(config_fname: &String) {
     println!("Run for {}.", config_fname);
+    fetch::fetch(config_fname).unwrap();
 }
 
 fn main() {
