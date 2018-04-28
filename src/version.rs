@@ -108,12 +108,12 @@ impl Version {
         &self.string[..]
     }
 
-    /// Given a version pattern, return bounds (u, w) such that (u <= v < w).
+    /// Given a version pattern, return bounds (u, w) such that (u <= v <= w).
     ///
     /// Examples:
     ///
     ///  * `1.0.* -> (1.0.Min, 1.0.Max)`
-    ///  * `1.1.0 -> (1.1.0, 1.1.0.Min)`
+    ///  * `1.1.0 -> (1.1.0, 1.1.0)`
     ///
     /// Note that the formatting of versions involving Min and Max is incorrect,
     /// these should not be printed directly.
@@ -123,21 +123,17 @@ impl Version {
             _ => false,
         };
 
-        let mut lower;
-        let mut upper;
-
         if is_wildcard {
-            upper = self.clone();
+            let mut lower = self.clone();
+            let mut upper = self.clone();
+            lower.parts.pop();
             upper.parts.pop();
-            lower = upper.clone();
             lower.parts.push(Part::Min);
             upper.parts.push(Part::Max);
+            (lower, upper)
         } else {
-            upper = self.clone();
-            lower = self.clone();
-            upper.parts.push(Part::Min);
+            (self.clone(), self.clone())
         }
-        (lower, upper)
     }
 }
 
@@ -189,11 +185,13 @@ impl PartialOrd for Version {
 
 impl Ord for Version {
     fn cmp(&self, other: &Version) -> Ordering {
-        for (p, q) in self.parts.iter().zip(other.parts.iter()) {
+        for (p, q) in parts_zero_padded(self, other) {
             match (*p, *q) {
                 // Semi-arbitrary choice: string parts order before numeric
-                // parts. This is because "1.0-a" feels like it should be before
-                // "1.0.1". But really, just don't do that kind of thing ...
+                // parts. This is so "1.0-beta" sorts before "1.0", which is
+                // zero-padded to "1.0.0". Also, "1.0-a" feels like it should be
+                // before "1.0.1". But really, just don't do that kind of thing
+                // ...
                 (Part::Num(..), Part::Str(..)) => return Ordering::Greater,
                 (Part::Str(..), Part::Num(..)) => return Ordering::Less,
                 // Numeric parts order just by the number.
@@ -213,9 +211,7 @@ impl Ord for Version {
             }
         }
 
-        // If all shared parts are equal, compare by number of parts (least
-        // number of parts orders before most number of parts).
-        self.parts.len().cmp(&other.parts.len())
+        Ordering::Equal
     }
 }
 
@@ -315,23 +311,17 @@ mod test {
     fn version_cmp_handles_pairwise_less() {
         // These versions are ordered in ascending order.
         let versions = [
-            Version::from(""),
-            Version::from("a"),
             Version::from("a.b"),
-            Version::from("a.0"),
-            Version::from("a.0.0"),
+            Version::from("a"),
             Version::from("a.1"),
             Version::from("b"),
-            Version::from("b.0"),
             Version::from("b.1.3"),
             Version::from("c"),
-            Version::from("0"),
             Version::from("0.a"),
-            Version::from("0.0"),
-            Version::from("0.1"),
+            Version::from("0"),
             Version::from("0.1-a"),
+            Version::from("0.1"),
             Version::from("0.1.1"),
-            Version::from("1"),
             Version::from("1.0"),
             Version::from("1.0.1"),
             Version::from("1.1"),
