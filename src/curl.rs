@@ -33,7 +33,6 @@ extern {
     fn curl_easy_cleanup(curl: *mut Curl);
     fn curl_easy_setopt(curl: *mut Curl, option: CurlOption, ...) -> CurlCode;
     fn curl_easy_perform(curl: *mut Curl) -> CurlCode;
-    fn curl_easy_recv(curl: *mut Curl, buffer: *mut raw::c_void, buflen: usize, n: *mut usize) -> CurlCode;
 }
 
 type Handler<'a> = Box<'a + FnMut(&[u8])>;

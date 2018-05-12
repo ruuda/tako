@@ -5,7 +5,7 @@
 
 use std::fs;
 use std::io;
-use std::io::{BufRead, BufWriter, Read, Write};
+use std::io::{BufRead, BufWriter, Write};
 
 use ring::digest;
 
@@ -21,41 +21,6 @@ fn load_config(config_fname: &str) -> Result<Config> {
     let buf_reader = io::BufReader::new(f);
     let lines: io::Result<Vec<String>> = buf_reader.lines().collect();
     Config::parse(lines?.iter())
-}
-
-/// Load a locally stored manifest.
-fn load_local_manifest(config: &Config) -> Result<Option<Manifest>> {
-    // Open the current manifest. If it does not exist that is not an error.
-    let mut path = config.destination.clone();
-    path.push("manifest");
-    let f = match fs::File::open(path) {
-        Err(ref e) if e.kind() == io::ErrorKind::NotFound => return Ok(None),
-        other => other?,
-    };
-
-    let mut buf_reader = io::BufReader::new(f);
-    let mut manifest_bytes = Vec::new();
-    buf_reader.read_to_end(&mut manifest_bytes)?;
-
-    Ok(Some(Manifest::parse(&manifest_bytes[..], &config.public_key)?))
-}
-
-/// Store a manifest locally. Writes first and then swaps the file.
-fn store_local_manifest(config: &Config, bytes: &[u8]) -> Result<()> {
-    let mut path_tmp = config.destination.clone();
-    let mut path_final = config.destination.clone();
-    path_tmp.push("manifest.new");
-    path_final.push("manifest");
-
-    // First write the entire manifest to a new file.
-    let f = fs::File::create(&path_tmp)?;
-    let mut buf_writer = io::BufWriter::new(f);
-    buf_writer.write_all(bytes)?;
-
-    // Then rename it over the old manifest.
-    fs::rename(path_tmp, path_final)?;
-
-    Ok(())
 }
 
 /// Fetch the remote manifest, store it locally if it is valid, and return it.

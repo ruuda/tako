@@ -1,9 +1,6 @@
 // Tako -- Take container image.
 // Copyright 2018 Arian van Putten, Ruud van Asseldonk, Tako Marks.
 
-// TODO: Disallow when the pieces come together.
-#![allow(dead_code)]
-
 // TODO: Use the system allocator (not jemalloc), when that makes it into Rust
 // stable. See also this excellent binary size guide:
 // https://jamesmunns.com/blog/tinyrocket/
