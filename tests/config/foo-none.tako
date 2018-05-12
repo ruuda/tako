@@ -1,6 +1,9 @@
 # The tests spin up a local webserver at port 8117.
 Origin=http://127.0.0.1:8117/tests/origin/foo
+Destination=tests/scratch/foo
+
 # The public key of the test key pair. See also src/manifest.rs.
 PublicKey=l0D28J2fiIXvWPbeZP7wkaq+dB55Gl2ysigl9mQH29k=
-Version=*
-Destination=tests/scratch/foo
+
+# This version does not exist in the store, hence there is no candidate.
+Version=4.0

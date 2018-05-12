@@ -18,8 +18,6 @@ extern crate filebuffer;
 extern crate ring;
 extern crate untrusted;
 
-use std::io::Write;
-use std::io;
 use std::process;
 use std::env;
 
@@ -37,19 +35,27 @@ mod store;
 mod util;
 mod version;
 
+use error::Error;
+
 fn run_init(config_fname: &String) {
     println!("Run for {}.", config_fname);
-
-    let mut curl_handle = curl::Handle::new();
-    curl_handle.download("https://hyper.rs", |chunk| {
-        io::stdout().write_all(chunk).unwrap();
-    }).unwrap();
-    println!("Done.");
+    // TODO: Check if store is good (optionally check digest).
+    // Only run fetch if required.
+    fetch::fetch(config_fname).unwrap();
 }
 
 fn run_fetch(config_fname: &String) {
     println!("Run for {}.", config_fname);
-    fetch::fetch(config_fname).unwrap();
+    match fetch::fetch(config_fname) {
+        Ok(()) => {},
+        Err(Error::NoCandidate) => {
+            // During normal operation, no candidate is not an error. We just
+            // don't do anything, as there is nothing we can do.
+            // TODO: Print more details (bounds and actual available).
+            println!("No candidate to fetch.");
+        }
+        Err(e) => panic!("{:?}", e),
+    }
 }
 
 fn run_store(store: cli::Store) {

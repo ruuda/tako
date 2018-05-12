@@ -73,12 +73,19 @@ assert os.path.exists('tests/scratch/bar-origin/store/'
 print('tako fetch')
 
 print(' * fetches the manifest into an empty destination')
-exec('target/debug/tako', 'fetch', 'tests/config/foo.tako')
+exec('target/debug/tako', 'fetch', 'tests/config/foo-none.tako')
 assert os.path.exists('tests/scratch/foo/manifest')
 
 print(' * fetches the manifest into an non-empty destination')
-exec('target/debug/tako', 'fetch', 'tests/config/foo.tako')
+exec('target/debug/tako', 'fetch', 'tests/config/foo-none.tako')
 assert os.path.exists('tests/scratch/foo/manifest')
+
+print(' * fetches an image into the destination store')
+exec('target/debug/tako', 'fetch', 'tests/config/foo-any.tako')
+assert os.path.exists('tests/scratch/foo/manifest')
+assert os.path.exists('tests/scratch/foo/store/'
+                      '64358f43b990c1473817773028ff2702'
+                      '9f4d367bf06595b6948d746fece678cd')
 
 print(' * fetches a previously stored manifest')
 exec('target/debug/tako', 'fetch', 'tests/config/bar.tako')
@@ -86,3 +93,5 @@ assert os.path.exists('tests/scratch/bar/manifest')
 
 # TODO: Test that Tako follows redirects.
 # TODO: Test that Tako handles file-not-found correctly (whatever that means).
+
+print('All tests passed.')
