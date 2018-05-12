@@ -33,6 +33,9 @@ pub enum Error {
     /// Signature verification failed.
     InvalidSignature,
 
+    /// Digest verification of a (possibly newly) stored image failed.
+    InvalidDigest,
+
     /// An operational error occurred.
     OperationError(&'static str),
 

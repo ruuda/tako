@@ -3,10 +3,11 @@
 
 //! Interface to libcurl. Not as bloated as the curl and curl-sys crates.
 
+use std::ffi::{CStr, CString};
+use std::io;
 use std::mem;
 use std::os::raw;
 use std::slice;
-use std::ffi::{CStr, CString};
 
 use error::{Error, Result};
 
@@ -59,6 +60,22 @@ impl Handle {
         Handle {
             curl: curl
         }
+    }
+
+    pub fn download_io<'a, F>(&'a mut self, uri: &str, mut on_data: F) -> Result<()>
+    where F: 'a + FnMut(&[u8]) -> io::Result<()> {
+        let mut result = Ok(());
+        {
+            let result_ref = &mut result;
+            self.download(uri, |chunk| {
+                // Take the current result, temporarily putting an Ok in its
+                // place that we overwrite immediately.
+                let current_result = mem::replace(result_ref, Ok(()));
+                *result_ref = current_result.and(on_data(chunk));
+            })?;
+        }
+        result?;
+        Ok(())
     }
 
     pub fn download<'a, F>(&'a mut self, uri: &str, on_data: F) -> Result<()> where F: 'a + FnMut(&[u8]) {
