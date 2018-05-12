@@ -134,21 +134,45 @@ pub fn fetch(config_fname: &str) -> Result<()> {
 
     // TODO: Check if file exists before downloading.
 
+    // Download to store/<hexdigest>.new. Then later rename the file to its
+    // final path. This ensures that when the program crashes or is killed mid-
+    // download, next time we will start again immediately. Also, this
+    // guarantees that the files in the store that don't have a ".new" suffix
+    // are valid (if nothing external modifies them).
+    let tmp_fname = target_fname.with_extension("new");
+
     let mut ctx = digest::Context::new(&digest::SHA256);
     {
         let ctx_ref = &mut ctx;
-        let mut f = BufWriter::new(fs::File::create(&target_fname)?);
+        let mut f = BufWriter::new(fs::File::create(&tmp_fname)?);
         curl_handle.download_io(&uri, |chunk| {
             ctx_ref.update(chunk);
             f.write_all(chunk)
         })?;
     }
     let actual_digest = ctx.finish();
+
     // The comparison is not constant time, but that is not an issue here; a
     // digest cannot be bruteforced byte by byte until it matches.
-    if actual_digest.as_ref() != candidate.digest.as_ref() {
+    let is_digest_valid = actual_digest.as_ref() == candidate.digest.as_ref();
+
+    if !is_digest_valid {
+        // Remove the temp file. It is corrupted somehow, it is no use. This is
+        // an operation that may fail, but we are already in a failure mode, and
+        // the "invalid digest" error is arguably more informative than an IO
+        // failure, so return that one and ignore any IO failures. In other
+        // words: report the original error, not any error that happens during
+        // error handling.
+        let _ = fs::remove_file(&tmp_fname);
         return Err(Error::InvalidDigest)
     }
+
+    // The store should be immutable, make the file readonly. Then move it into
+    // its final place.
+    let mut perms = fs::metadata(&tmp_fname)?.permissions();
+    perms.set_readonly(true);
+    fs::set_permissions(&tmp_fname, perms)?;
+    fs::rename(tmp_fname, &target_fname)?;
 
     Ok(())
 }
