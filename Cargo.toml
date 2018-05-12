@@ -12,3 +12,14 @@ base64     = "0.9.0"
 ring       = "0.13.0-alpha"
 untrusted  = "0.6.1"
 filebuffer = "0.4.0"
+
+[profile.release]
+# For the release build, optimize for size.
+panic = "abort"
+lto = true
+codegen-units = 1
+incremental = false
+
+# TODO: Enable this once opt-level="z" works on Rust stable.
+# Optimize for size, not speed.
+# opt-level = "z"

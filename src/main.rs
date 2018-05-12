@@ -4,6 +4,18 @@
 // TODO: Disallow when the pieces come together.
 #![allow(dead_code)]
 
+// TODO: Use the system allocator (not jemalloc), when that makes it into Rust
+// stable. See also this excellent binary size guide:
+// https://jamesmunns.com/blog/tinyrocket/
+//
+// #![feature(alloc_system, global_allocator, allocator_api)]
+// extern crate alloc_system;
+//
+// use alloc_system::System;
+//
+// #[global_allocator]
+// static A: System = System;
+
 extern crate base64;
 extern crate filebuffer;
 extern crate ring;
