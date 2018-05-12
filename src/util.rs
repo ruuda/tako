@@ -1,7 +1,11 @@
 // Tako -- Take container image.
 // Copyright 2018 Arian van Putten, Ruud van Asseldonk, Tako Marks.
 
-//! Utilities for formatting, parsing, digests, etc.
+//! Utilities for formatting, parsing, digests, files, etc.
+
+use std::fs;
+use std::io;
+use std::path::Path;
 
 const HEX_CHARS: [char; 16] = [
     '0', '1', '2', '3', '4', '5', '6', '7',
@@ -13,5 +17,52 @@ pub fn append_hex(string: &mut String, bytes: &[u8]) {
     for &b in bytes {
         string.push(HEX_CHARS[(b >> 4) as usize]);
         string.push(HEX_CHARS[(b & 0xf) as usize]);
+    }
+}
+
+/// A file that is deleted on drop, unless explicitly renamed.
+///
+/// This is used to write to a temporary file, which is cleaned up automatically
+/// on an error: construct a `FileGuard` with the file path. In case of an early
+/// return due to an error, the guard goes out of scope and deletes the file. If
+/// the full write was successful, call `move_readonly()` to mark the file
+/// read-only and move it into its final destination.
+pub struct FileGuard<'a> {
+    path: &'a Path,
+    delete: bool,
+}
+
+impl<'a> FileGuard<'a> {
+    pub fn new(path: &'a Path) -> FileGuard<'a> {
+        FileGuard {
+            path: path,
+            delete: true,
+        }
+    }
+
+    pub fn move_readonly(mut self, dest: &Path) -> io::Result<()> {
+        // Make the file readonly.
+        let mut perms = fs::metadata(self.path)?.permissions();
+        perms.set_readonly(true);
+        fs::set_permissions(self.path, perms)?;
+        fs::rename(self.path, dest)?;
+        self.delete = false;
+        Ok(())
+    }
+}
+
+impl<'a> Drop for FileGuard<'a> {
+    fn drop(&mut self) {
+        if self.delete {
+            // Remove the temp file. The drop with `delete` set happens on an
+            // error path, so the file is likely incomplete, or its signature or
+            // digest might be invalid. Removing the file is an operation that
+            // may fail, but we are already in a failure mode, and deleting the
+            // temp file is part of error recovery. If recovery fails, the
+            // original error is more informative than the secondary IO error.
+            // Besides, we cannot return the error here anyway. So ignore the
+            // secondary error.
+            let _ = fs::remove_file(self.path);
+        }
     }
 }

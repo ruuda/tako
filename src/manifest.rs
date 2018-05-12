@@ -329,13 +329,16 @@ pub fn store_local(path: &Path, bytes: &[u8]) -> Result<()> {
     path_tmp.push("manifest.new");
     path_final.push("manifest");
 
-    // First write the entire manifest to a new file.
+    // Delete the file if the write fails.
+    let guard = util::FileGuard::new(&path_tmp);
+
+    // Write the entire manifest to a new file.
     let f = fs::File::create(&path_tmp)?;
     let mut buf_writer = io::BufWriter::new(f);
     buf_writer.write_all(bytes)?;
 
-    // Then rename it over the old manifest.
-    fs::rename(path_tmp, path_final)?;
+    // Rename the manifest over the old manifest, mark it read-only.
+    guard.move_readonly(&path_final)?;
 
     Ok(())
 }

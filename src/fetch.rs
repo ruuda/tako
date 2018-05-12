@@ -6,7 +6,6 @@
 use std::fs;
 use std::io;
 use std::io::{BufRead, BufWriter, Read, Write};
-use std::path::Path;
 
 use ring::digest;
 
@@ -16,45 +15,6 @@ use error::{Error, Result};
 use manifest;
 use manifest::Manifest;
 use util;
-
-/// Deletes a file when it goes out of scope, unless explicitly destructed.
-///
-/// This is used to clean up the file on an error path: construct a `FileGuard`
-/// around the temporary file. In case of an early return due to an error, the
-/// guard goes out of scope and deletes the file. When all is fine, explicitly
-/// call `drop_without_delete()`, and the file will remain on disk.
-struct FileGuard<'a> {
-    path: &'a Path,
-    delete: bool,
-}
-
-impl<'a> FileGuard<'a> {
-    pub fn new(path: &'a Path) -> FileGuard<'a> {
-        FileGuard {
-            path: path,
-            delete: true,
-        }
-    }
-
-    pub fn drop_without_delete(mut self) {
-        self.delete = false;
-    }
-}
-
-impl<'a> Drop for FileGuard<'a> {
-    fn drop(&mut self) {
-        if self.delete {
-            // Remove the temp file. The drop with `delete` set happens on an
-            // error path, so the file is likely incomplete, or its digest might
-            // be wrong. Removing the file is an operation that may fail, but we
-            // are already in a failure mode, and deleting the temp file is part
-            // of error recovery. If recovery fails, the original error is more
-            // informative than the secondary IO error. Besides, we cannot
-            // return the error here anyway. So ignore the secondary error.
-            let _ = fs::remove_file(self.path);
-        }
-    }
-}
 
 fn load_config(config_fname: &str) -> Result<Config> {
     let f = fs::File::open(config_fname)?;
@@ -182,7 +142,7 @@ pub fn fetch(config_fname: &str) -> Result<()> {
     let tmp_fname = target_fname.with_extension("new");
 
     // In case of error, delete the temp file.
-    let delete_guard = FileGuard::new(&tmp_fname);
+    let guard = util::FileGuard::new(&tmp_fname);
 
     let mut ctx = digest::Context::new(&digest::SHA256);
     {
@@ -205,14 +165,7 @@ pub fn fetch(config_fname: &str) -> Result<()> {
 
     // The store should be immutable, make the file readonly. Then move it into
     // its final place.
-    let mut perms = fs::metadata(&tmp_fname)?.permissions();
-    perms.set_readonly(true);
-    fs::set_permissions(&tmp_fname, perms)?;
-    fs::rename(&tmp_fname, &target_fname)?;
-
-    // At this point the temp file controlled by the delete file no longer
-    // exists. We should not try to delete it on drop.
-    delete_guard.drop_without_delete();
+    guard.move_readonly(&target_fname)?;
 
     Ok(())
 }
