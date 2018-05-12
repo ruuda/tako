@@ -83,3 +83,6 @@ assert os.path.exists('tests/scratch/foo/manifest')
 print(' * fetches a previously stored manifest')
 exec('target/debug/tako', 'fetch', 'tests/config/bar.tako')
 assert os.path.exists('tests/scratch/bar/manifest')
+
+# TODO: Test that Tako follows redirects.
+# TODO: Test that Tako handles file-not-found correctly (whatever that means).
