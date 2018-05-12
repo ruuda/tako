@@ -27,7 +27,14 @@ def exec(args):
 def run_server():
     port = 8117
     Handler = http.server.SimpleHTTPRequestHandler
+    # Enabling addr reuse ensures that we can run the tests twice in a row,
+    # without having to wait a few dozen seconds in between.
+    socketserver.TCPServer.allow_reuse_address = True
     with socketserver.TCPServer(('', port), Handler) as httpd:
+        # The http server logs to stderr. That is causes noise in the test
+        # output that we don't care about. Therefore, redirect stderr to
+        # /dev/null.
+        sys.stderr = open(os.devnull, 'w')
         httpd.serve_forever()
 
 
