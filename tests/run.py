@@ -13,7 +13,7 @@ is_repo_root = os.path.exists(os.path.join(os.getcwd(), 'README.md'))
 assert is_repo_root, 'This script must be run from the root of the repository.'
 
 
-def exec(args):
+def exec(*args):
     p = subprocess.run(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     if p.returncode != 0:
         print('Process {} exited with nonzero exit code.'.format(args))
@@ -61,10 +61,10 @@ os.environ['RUST_BACKTRACE'] = '1'
 print('tako store')
 
 print(' * stores into an empty server directory')
-exec(['target/debug/tako', 'store',
-      '--key', secret_key,
-      '--output', 'tests/scratch/bar-origin',
-      'tests/images/1.0.0.img', '1.0.0'])
+exec('target/debug/tako', 'store',
+     '--key', secret_key,
+     '--output', 'tests/scratch/bar-origin',
+     'tests/images/1.0.0.img', '1.0.0')
 assert os.path.exists('tests/scratch/bar-origin/manifest')
 assert os.path.exists('tests/scratch/bar-origin/store/'
                       'a18339e497c231154b9d06c809ef7e03'
@@ -73,13 +73,13 @@ assert os.path.exists('tests/scratch/bar-origin/store/'
 print('tako fetch')
 
 print(' * fetches the manifest into an empty destination')
-exec(['target/debug/tako', 'fetch', 'tests/config/foo.tako'])
+exec('target/debug/tako', 'fetch', 'tests/config/foo.tako')
 assert os.path.exists('tests/scratch/foo/manifest')
 
 print(' * fetches the manifest into an non-empty destination')
-exec(['target/debug/tako', 'fetch', 'tests/config/foo.tako'])
+exec('target/debug/tako', 'fetch', 'tests/config/foo.tako')
 assert os.path.exists('tests/scratch/foo/manifest')
 
 print(' * fetches a previously stored manifest')
-exec(['target/debug/tako', 'fetch', 'tests/config/bar.tako'])
+exec('target/debug/tako', 'fetch', 'tests/config/bar.tako')
 assert os.path.exists('tests/scratch/bar/manifest')
