@@ -5,29 +5,18 @@
 
 use std::fs;
 use std::io::Read;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
 use base64;
-use filebuffer::FileBuffer;
 use ring::signature::Ed25519KeyPair;
-use ring;
 use untrusted::Input;
 
 use cli::Store;
 use config::PublicKey;
 use error::{Error, Result};
 use manifest;
-use manifest::{Entry, Manifest, Sha256};
+use manifest::{Entry, Manifest};
 use util;
-
-pub fn sha256sum(path: &Path) -> Result<Sha256> {
-    // Mmap the file when computing its digest. This way we can compute the
-    // digest of files that don't fit in memory, without having to care about
-    // streaming manually. Simple and fast.
-    let fbuffer = FileBuffer::open(path)?;
-    let sha256_bytes = ring::digest::digest(&ring::digest::SHA256, &fbuffer);
-    Ok(Sha256::copy_from_slice(sha256_bytes.as_ref()))
-}
 
 pub fn store(store: Store) -> Result<()> {
     let secret_key_base64 = match (store.secret_key, store.secret_key_path) {
@@ -70,7 +59,7 @@ pub fn store(store: Store) -> Result<()> {
         fs::create_dir(&store_dir)?;
     }
 
-    let digest = sha256sum(&store.image_path)?;
+    let digest = util::sha256sum(&store.image_path)?;
     let mut digest_hex = String::new();
     util::append_hex(&mut digest_hex, digest.as_ref());
 

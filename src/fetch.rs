@@ -4,8 +4,9 @@
 //! Contains the main fetching logic (downloading manifests and images).
 
 use std::fs;
-use std::io;
 use std::io::{BufRead, BufWriter, Write};
+use std::io;
+use std::path::Path;
 
 use ring::digest;
 
@@ -15,6 +16,7 @@ use error::{Error, Result};
 use manifest;
 use manifest::Manifest;
 use util;
+use util::Sha256;
 
 fn load_config(config_fname: &str) -> Result<Config> {
     let f = fs::File::open(config_fname)?;
@@ -60,6 +62,43 @@ pub fn fetch_manifest(config: &Config, curl_handle: &mut curl::Handle) -> Result
     Ok(remote_manifest)
 }
 
+fn fetch_image(uri: &str, target_fname: &Path, digest: &Sha256, curl_handle: &mut curl::Handle) -> Result<()> {
+    // Download to store/<hexdigest>.new. Then later rename the file to its
+    // final path. This ensures that when the program crashes or is killed mid-
+    // download, next time we will start the download again immediately. Also,
+    // this guarantees that the files in the store that don't have a ".new"
+    // suffix are valid (if nothing external modifies them).
+    let tmp_fname = target_fname.with_extension("new");
+
+    // In case of error, delete the temp file.
+    let guard = util::FileGuard::new(&tmp_fname);
+
+    let mut ctx = digest::Context::new(&digest::SHA256);
+    {
+        let ctx_ref = &mut ctx;
+        let mut f = BufWriter::new(fs::File::create(&tmp_fname)?);
+        curl_handle.download_io(uri, |chunk| {
+            ctx_ref.update(chunk);
+            f.write_all(chunk)
+        })?;
+    }
+    let actual_digest = ctx.finish();
+
+    // The comparison is not constant time, but that is not an issue here; a
+    // digest cannot be bruteforced byte by byte until it matches.
+    let is_digest_valid = actual_digest.as_ref() == digest.as_ref();
+
+    if !is_digest_valid {
+        return Err(Error::InvalidDigest)
+    }
+
+    // The store should be immutable, make the file readonly. Then move it into
+    // its final place.
+    guard.move_readonly(&target_fname)?;
+
+    Ok(())
+}
+
 /// Check for, download, and apply updates as given in the config.
 pub fn fetch(config_fname: &str) -> Result<()> {
     let config = load_config(config_fname)?;
@@ -85,9 +124,6 @@ pub fn fetch(config_fname: &str) -> Result<()> {
     let mut target_fname = config.destination.clone();
     target_fname.push(&uri[prefix_len..]);
 
-    // TODO: Maybe write to temp file, rename afterwards, after hash
-    // verification?
-
     // Create the store directory inside the target directory, if it does not
     // exist already. Do not create any of the parent dirs, this is the
     // responsibility of the user. The unwrap is safe here; by construction the
@@ -97,40 +133,20 @@ pub fn fetch(config_fname: &str) -> Result<()> {
         fs::create_dir(store_dirname)?;
     }
 
-    // TODO: Check if file exists before downloading.
-
-    // Download to store/<hexdigest>.new. Then later rename the file to its
-    // final path. This ensures that when the program crashes or is killed mid-
-    // download, next time we will start again immediately. Also, this
-    // guarantees that the files in the store that don't have a ".new" suffix
-    // are valid (if nothing external modifies them).
-    let tmp_fname = target_fname.with_extension("new");
-
-    // In case of error, delete the temp file.
-    let guard = util::FileGuard::new(&tmp_fname);
-
-    let mut ctx = digest::Context::new(&digest::SHA256);
-    {
-        let ctx_ref = &mut ctx;
-        let mut f = BufWriter::new(fs::File::create(&tmp_fname)?);
-        curl_handle.download_io(&uri, |chunk| {
-            ctx_ref.update(chunk);
-            f.write_all(chunk)
-        })?;
+    if target_fname.is_file() {
+        // If the target file exists in the store already, don't download it
+        // again, but do verify its integrity. If damaged, delete the file from
+        // the store, such that on the next run we will download it again, and
+        // also to prevent the damaged (or tampered with) file from being used.
+        if util::sha256sum(&target_fname)? != candidate.digest {
+            let _ = fs::remove_file(&target_fname);
+            return Err(Error::InvalidDigest)
+        }
+    } else {
+        // If the file was not in the store, download it. This performs an on
+        // the fly integrity check.
+        fetch_image(&uri, &target_fname, &candidate.digest, &mut curl_handle)?;
     }
-    let actual_digest = ctx.finish();
-
-    // The comparison is not constant time, but that is not an issue here; a
-    // digest cannot be bruteforced byte by byte until it matches.
-    let is_digest_valid = actual_digest.as_ref() == candidate.digest.as_ref();
-
-    if !is_digest_valid {
-        return Err(Error::InvalidDigest)
-    }
-
-    // The store should be immutable, make the file readonly. Then move it into
-    // its final place.
-    guard.move_readonly(&target_fname)?;
 
     Ok(())
 }

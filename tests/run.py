@@ -13,10 +13,12 @@ is_repo_root = os.path.exists(os.path.join(os.getcwd(), 'README.md'))
 assert is_repo_root, 'This script must be run from the root of the repository.'
 
 
-def exec(*args):
+def exec(*args, expect=0):
+    """ Run a program with an expected exit code, print stdout on mismatch. """
     p = subprocess.run(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    if p.returncode != 0:
-        print('Process {} exited with nonzero exit code.'.format(args))
+    if p.returncode != expect:
+        print('Process {} exited with unexpected '
+              'exit code {}.'.format(args, p.returncode))
         print('\nSTDOUT\n------')
         sys.stdout.buffer.write(p.stdout)
         print('\nSTDERR\n------')
@@ -80,12 +82,32 @@ print(' * fetches the manifest into an non-empty destination')
 exec('target/debug/tako', 'fetch', 'tests/config/foo-none.tako')
 assert os.path.exists('tests/scratch/foo/manifest')
 
+img_v2_sha = '64358f43b990c1473817773028ff27029f4d367bf06595b6948d746fece678cd'
+foo_store_img_v2 = 'tests/scratch/foo/store/' + img_v2_sha
+
 print(' * fetches an image into the destination store')
 exec('target/debug/tako', 'fetch', 'tests/config/foo-any.tako')
 assert os.path.exists('tests/scratch/foo/manifest')
-assert os.path.exists('tests/scratch/foo/store/'
-                      '64358f43b990c1473817773028ff2702'
-                      '9f4d367bf06595b6948d746fece678cd')
+assert os.path.exists(foo_store_img_v2)
+# The files in the store must be readonly.
+assert not os.access(foo_store_img_v2, os.W_OK)
+
+print(' * does not download an existing image')
+exec('target/debug/tako', 'fetch', 'tests/config/foo-any.tako')
+# TODO: Add a hook to the webserver, and verify that indeed we did not get a
+# request for the image, only for the manifest.
+assert os.path.exists(foo_store_img_v2)
+
+print(' * deletes a damaged image')
+# Corrupt the file in the store. Running "tako fetch" again should detect this,
+# and delete the file (such that on a next run it would be redownloaded).
+os.chmod(foo_store_img_v2, int('755', 8))
+with open(foo_store_img_v2, 'w') as f:
+    f.write('burrito')
+os.chmod(foo_store_img_v2, int('555', 8))
+# TODO: The expected exit code should be 1 for failure, not 101 (for panic).
+exec('target/debug/tako', 'fetch', 'tests/config/foo-any.tako', expect=101)
+assert not os.path.exists(foo_store_img_v2)
 
 print(' * fetches a previously stored manifest')
 exec('target/debug/tako', 'fetch', 'tests/config/bar.tako')

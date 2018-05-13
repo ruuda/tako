@@ -7,6 +7,28 @@ use std::fs;
 use std::io;
 use std::path::Path;
 
+use filebuffer::FileBuffer;
+use ring;
+
+use error::Result;
+
+#[derive(Debug, Clone, Eq, PartialEq)]
+pub struct Sha256(pub [u8; 32]);
+
+impl Sha256 {
+    pub fn copy_from_slice(bytes: &[u8]) -> Sha256 {
+        let mut sha256 = [0_u8; 32];
+        sha256.copy_from_slice(bytes);
+        Sha256(sha256)
+    }
+}
+
+impl AsRef<[u8]> for Sha256 {
+    fn as_ref(&self) -> &[u8] {
+        &self.0[..]
+    }
+}
+
 const HEX_CHARS: [char; 16] = [
     '0', '1', '2', '3', '4', '5', '6', '7',
     '8', '9', 'a', 'b', 'c', 'd', 'e', 'f',
@@ -18,6 +40,16 @@ pub fn append_hex(string: &mut String, bytes: &[u8]) {
         string.push(HEX_CHARS[(b >> 4) as usize]);
         string.push(HEX_CHARS[(b & 0xf) as usize]);
     }
+}
+
+/// Compute the SHA256 digest of a file. Mmaps the file.
+pub fn sha256sum(path: &Path) -> Result<Sha256> {
+    // Mmap the file when computing its digest. This way we can compute the
+    // digest of files that don't fit in memory, without having to care about
+    // streaming manually. Simple and fast.
+    let fbuffer = FileBuffer::open(path)?;
+    let sha256_bytes = ring::digest::digest(&ring::digest::SHA256, &fbuffer);
+    Ok(Sha256::copy_from_slice(sha256_bytes.as_ref()))
 }
 
 /// A file that is deleted on drop, unless explicitly renamed.

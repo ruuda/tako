@@ -18,24 +18,8 @@ use untrusted::Input;
 use config::PublicKey;
 use error::{Error, Result};
 use util;
+use util::Sha256;
 use version::Version;
-
-#[derive(Debug, Clone, Eq, PartialEq)]
-pub struct Sha256([u8; 32]);
-
-impl Sha256 {
-    pub fn copy_from_slice(bytes: &[u8]) -> Sha256 {
-        let mut sha256 = [0_u8; 32];
-        sha256.copy_from_slice(bytes);
-        Sha256(sha256)
-    }
-}
-
-impl AsRef<[u8]> for Sha256 {
-    fn as_ref(&self) -> &[u8] {
-        &self.0[..]
-    }
-}
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Entry {
