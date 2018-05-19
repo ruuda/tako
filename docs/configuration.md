@@ -27,7 +27,7 @@ allowed, but not required.
 
 ### `PublicKey=`
 
-Public key used to verify image interity and authenthicity. The public key
+Public key used to verify image integrity and authenthicity. The public key
 should be announced by the distributor of the image. Distributors can generate
 a key pair with [`tako gen-key`](tako-gen-key.md).
 
