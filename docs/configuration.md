@@ -13,15 +13,36 @@ per image. Config files follow the same syntax as systemd unit files.
     # Restart app-foo after a new image has been fetched.
     RestartUnit=app-foo.service
 
-## Keys
+## Options
 
-  * `Origin=`: TODO
-  * `PublicKey=`: TODO
-  * `Destination=`: TODO
-  * `Version=`: TODO
-  * `RestartUnit=`: TODO
+The following options are available. Unless noted otherwise, all options must be
+specified exactly once.
+
+  * `Origin=`: Remote uri to fetch the manifest and images from. Usually an
+    https url, but anything supported by Curl will do, such as a `file://` or
+    `ssh://` uri. The uri must point to a directory that contains a manifest
+    file.
+  * `PublicKey=`: Public key used to verify image interity and authenthicity.
+    The public key should be announced by the distributor of the image. A key
+    pair can be generated with `tako gen-key`.
+  * `Destination=`: Directory where images will be stored. This directory must
+    exist. Tako will create a `store` subdirectory to hold images, a `manifest`
+    file which is a copy of the remote manifest, and a `latest` symlink that
+    points to the latest compatible image in the store.
+  * `Version=`: A version specification that indicates which version range is
+    *compatible*. Tako will then fetch the latest (highest numbered) compatible
+    version. The version specification can be a fixed version, a wildcard
+    pattern, or a bounds pattern. See [Versions](versions.md) for more
+    information.
+  * `Restart=`: A systemd unit to restart in case a newer image has been
+    fetched. The format is the same as that of [`Requires=`][systemd-requires]
+    in systemd units. This option may be specified more than once, or multiple
+    space-separated units may be specified in one option. This option is not
+    required, if it is not set, no unit will be restarted.
 
 ## Comments
 
 Like systemd unit files, lines starting with `#` or `;` are ignored. Empty lines
 are ignored as well.
+
+[systemd-requires]: https://www.freedesktop.org/software/systemd/man/systemd.unit.html#Requires=
