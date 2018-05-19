@@ -1,6 +1,7 @@
 # Build output
 /target
 **/*.rs.bk
+/site
 
 # Editor files
 *.swp

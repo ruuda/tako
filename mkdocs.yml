@@ -1,0 +1,9 @@
+site_name: Tako
+theme: readthedocs
+repo_url: https://github.com/ruuda/tako
+strict: true
+pages:
+  - Overview: index.md
+  - Configuration: configuration.md
+  - Versions: versions.md
+  - Manifest Format: manifest-format.md
