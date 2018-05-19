@@ -16,4 +16,4 @@ before_install:
 script:
   - cargo build
   - cargo test
-  - python3.6 tests/run.py
+  - prove --verbose --exec python3.6 tests/run.py
