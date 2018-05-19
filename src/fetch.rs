@@ -4,8 +4,9 @@
 //! Contains the main fetching logic (downloading manifests and images).
 
 use std::fs;
-use std::io::{BufRead, BufWriter, Write};
 use std::io;
+use std::io::{BufRead, BufWriter, Write};
+use std::os::unix;
 use std::path::Path;
 
 use ring::digest;
@@ -99,6 +100,22 @@ fn fetch_image(uri: &str, target_fname: &Path, digest: &Sha256, curl_handle: &mu
     Ok(())
 }
 
+/// Create the symlink to the target path.
+///
+/// This is a no-op if the symlink exists and points to the target path already.
+fn update_symlink(config: &Config, target: &Path) -> io::Result<()> {
+    let mut sympath = config.destination.clone();
+    sympath.push("latest");
+
+    match sympath.read_link() {
+        Ok(ref points_at) if points_at == target => return Ok(()),
+        // Other cases are nonexisting symlink, or symlink pointing at
+        // something else than the target. In both cases we create (overwrite)
+        // the symlink.
+        _ => unix::fs::symlink(target, sympath)
+    }
+}
+
 /// Check for, download, and apply updates as given in the config.
 pub fn fetch(config_fname: &str) -> Result<()> {
     let config = load_config(config_fname)?;
@@ -147,6 +164,8 @@ pub fn fetch(config_fname: &str) -> Result<()> {
         // the fly integrity check.
         fetch_image(&uri, &target_fname, &candidate.digest, &mut curl_handle)?;
     }
+
+    update_symlink(&config, &target_fname)?;
 
     Ok(())
 }
