@@ -43,7 +43,7 @@ Non-goals:
  * Reinvent apt packaging. In particular: no scriptable install steps or
    extensive metadata. Just a signed filesystem image. Not even systemd unit
    files.
- * Delivering multiple files. Tako can donwload a tar archive, but it will not
+ * Delivering multiple files. Tako can download a tar archive, but it will not
    extract it for you.
  * Be a container runtime. Systemd is a decent container runtime.
 
