@@ -39,13 +39,13 @@ when it downloads a newer version of an image. Tako runs on two occasions:
 Command-line interface:
 
     # Initially fetch an image, but do nothing if any image exists already.
-    tako --if-not-exists /etc/tako/yourapp
+    tako fetch --init /etc/tako/yourapp
 
     # Check for, download, and apply available updates.
-    tako /etc/tako/yourapp
+    tako fetch /etc/tako/yourapp
 
     # Update multiple images at once.
-    tako /etc/tako/app-foo /etc/tako/app-bar
+    tako fetch /etc/tako/app-foo /etc/tako/app-bar
 
 Configuration file example:
 
@@ -53,6 +53,7 @@ Configuration file example:
     PublicKey=8+r5DKNN/cwI+h0oHxMtgdyND3S/5xDLHQu0hFUmq+g=
     Destination=/var/lib/images/app-foo
     RestartUnit=app-foo.service
+    Version=1.*
 
 If multiple units share the same image, it is possible to specify multiple units
 to restart:
@@ -62,6 +63,7 @@ to restart:
     Destination=/var/lib/images/app-foo
     RestartUnit=app-foo.service
     RestartUnit=app-bar.service
+    Version=1.*
 
 The `RestartUnit=` key is optional.
 
@@ -80,11 +82,11 @@ See also [Manifest Format](docs/manifest-format.md) in the docs.
 ## Local Store
 
 Tako downloads images into a destination directory. It creates the following
-files there (`//` indicates the destination directory path).
+files there:
 
-    //store/<hexdigest>  # Raw image file.
-    //manifest           # A copy of the manifest served by the origin.
-    //latest             # Symlink to the latest image.
+    store/<hexdigest>  # Raw image files.
+    manifest           # A copy of the manifest served by the origin.
+    latest             # Symlink to the latest image.
 
 ## Future work
 
