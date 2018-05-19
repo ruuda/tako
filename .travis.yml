@@ -1,0 +1,16 @@
+language: rust
+sudo: false
+cache: cargo
+
+rust:
+  # Test the earliest supported version, and beta and nightly. We support Rust
+  # 1.24.1 because that is what Ubuntu 16.04 LTS (and also Debian testing at the
+  # time of writing).
+  - 1.24.1
+  - beta
+  - nightly
+
+script:
+  - cargo build
+  - cargo test
+  - tests/run.py
