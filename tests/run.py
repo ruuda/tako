@@ -62,15 +62,15 @@ os.environ['RUST_BACKTRACE'] = '1'
 
 print('tako store')
 
+img_v1_sha = 'a18339e497c231154b9d06c809ef7e03a44cd59eb74217c64886b00696ce7062'
+
 print(' * stores into an empty server directory')
 exec('target/debug/tako', 'store',
      '--key', secret_key,
      '--output', 'tests/scratch/bar-origin',
      'tests/images/1.0.0.img', '1.0.0')
 assert os.path.exists('tests/scratch/bar-origin/manifest')
-assert os.path.exists('tests/scratch/bar-origin/store/'
-                      'a18339e497c231154b9d06c809ef7e03'
-                      'a44cd59eb74217c64886b00696ce7062')
+assert os.path.exists('tests/scratch/bar-origin/store/' + img_v1_sha)
 
 print('tako fetch')
 
@@ -115,7 +115,7 @@ assert not os.path.exists(foo_store_img_v2)
 print(' * fetches a previously stored manifest')
 exec('target/debug/tako', 'fetch', 'tests/config/bar.tako')
 assert os.path.exists('tests/scratch/bar/manifest')
-# assert os.readlink('tests/scratch/foo/latest') == foo_store_img_v2
+assert os.readlink('tests/scratch/bar/latest') == 'store/' + img_v1_sha
 
 # TODO: Test that Tako follows redirects.
 # TODO: Test that Tako handles file-not-found correctly (whatever that means).
