@@ -13,7 +13,7 @@ This command takes one or more [config files](configuration.md). For every
 provided config file, it:
 
  * Downloads the latest manifest from the remote into the destination directory.
- * Dowloads the latest image, if a newer compatible version exists.
+ * Downloads the latest image, if a newer compatible version exists.
  * Symlinks `latest` in the destination directory to the newly downloaded image.
  * Restarts any configured systemd units.
 
