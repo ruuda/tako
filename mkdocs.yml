@@ -5,6 +5,8 @@ strict: true
 pages:
   - Overview: index.md
   - User Guide:
+    - Downloading Images: downloading-images.md
+    - Distributing Images: distributing-images.md
     - Configuration: configuration.md
     - Versions: versions.md
   - Reference:

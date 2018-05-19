@@ -22,6 +22,8 @@ as easy as copying over the binary.
 
 ## User Guide
 
+ * [Downloading Images](downloading-images.md)
+ * [Distributing Images](distributing-images.md)
  * [Configuration](configuration.md)
  * [Versions](versions.md)
 
