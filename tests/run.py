@@ -91,12 +91,14 @@ assert os.path.exists('tests/scratch/foo/manifest')
 assert os.path.exists(foo_store_img_v2)
 # The files in the store must be readonly.
 assert not os.access(foo_store_img_v2, os.W_OK)
+assert os.readlink('tests/scratch/foo/latest') == foo_store_img_v2
 
 print(' * does not download an existing image')
 exec('target/debug/tako', 'fetch', 'tests/config/foo-any.tako')
 # TODO: Add a hook to the webserver, and verify that indeed we did not get a
 # request for the image, only for the manifest.
 assert os.path.exists(foo_store_img_v2)
+assert os.readlink('tests/scratch/foo/latest') == foo_store_img_v2
 
 print(' * deletes a damaged image')
 # Corrupt the file in the store. Running "tako fetch" again should detect this,
@@ -112,6 +114,7 @@ assert not os.path.exists(foo_store_img_v2)
 print(' * fetches a previously stored manifest')
 exec('target/debug/tako', 'fetch', 'tests/config/bar.tako')
 assert os.path.exists('tests/scratch/bar/manifest')
+# assert os.readlink('tests/scratch/foo/latest') == foo_store_img_v2
 
 # TODO: Test that Tako follows redirects.
 # TODO: Test that Tako handles file-not-found correctly (whatever that means).

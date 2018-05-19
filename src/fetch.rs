@@ -157,6 +157,8 @@ pub fn fetch(config_fname: &str) -> Result<()> {
         // also to prevent the damaged (or tampered with) file from being used.
         if util::sha256sum(&target_fname)? != candidate.digest {
             let _ = fs::remove_file(&target_fname);
+            // TODO: Also delete the symlink if it happened to point at the
+            // corrupted file?
             return Err(Error::InvalidDigest)
         }
     } else {
