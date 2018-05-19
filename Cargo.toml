@@ -1,6 +1,7 @@
 [package]
 name = "tako"
 version = "0.0.0"
+license = "Apache-2.0"
 authors = [
   "Arian van Putten <aeroboy94@gmail.com>",
   "Ruud van Asseldonk <dev@veniogames.com>",
