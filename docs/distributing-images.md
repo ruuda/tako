@@ -1,12 +1,14 @@
 # Distributing Images
 
-Distributing images through Tako is as simple as hosting an http server. A Tako
-remote is simply a directory on a server with a particular layout:
+A Tako server is a regular http server, with a particular directory layout.
+The origin uri points to a directory that contains the manifest file and the
+image store.
 
- * `manifest` is a file that lists all available versions and their hashes.
-   See [Manifest Format](manifest-format.md) for more information about the
-   manifest format.
- * `store` is a directory that contains all images.
+ * `manifest` is a file that lists all available versions and their SHA256
+   digests. The manifest is signed. See [Manifest Format](manifest-format.md)
+   for more information about the manifest format.
+ * `store` is a directory that contains all images. Files are named after their
+   digest.
 
 Images can be added to the directory with [`tako store`](tako-store.md). The
 most convenient way to maintain the server directory is to have a local copy

@@ -15,13 +15,23 @@ following to `example.tako`:
     Destination=/tmp/app-foo
     Version=*
 
-Download the latest available image with [`tako fetch`](tako-fetch.md):
+Download the latest available image with
+[`tako fetch example.tako`](tako-fetch.md). Now `/tmp/app-foo/latest` is a
+symlink to the latest image, which itself is stored as a readonly file in
+`/tmp/app-foo/store`.
 
-    $ tako fetch example.tako
-    $ file /tmp/app-foo/latest
+## Local Store
 
-Now `/tmp/app-foo/latest` is a symlink to the latest image, which itself is
-stored as a readonly file in `/tmp/app-foo/store`.
+Tako downloads images into a destination directory. It creates the following
+files there:
+
+    store/<hexdigest>  # Readonly raw image files.
+    manifest           # A copy of the manifest served by the origin.
+    latest             # Symlink to the latest image.
+
+The store keeps older versions to allow quick rollbacks. In the future Tako
+will be able to prune older versions if the store exceeds a certain size.
+<!-- TODO: Implement that. -->
 
 ## Automating Updates
 
@@ -36,6 +46,7 @@ recommended to avoid overloading the remote server.
 See [`tako fetch --init`](tako-fetch.md#-init).
 
 <!-- TODO: Elaborate. -->
+
 
 [systemd-timer]: https://www.freedesktop.org/software/systemd/man/systemd.timer.html
 [delay]:         https://www.freedesktop.org/software/systemd/man/systemd.timer.html#RandomizedDelaySec=
