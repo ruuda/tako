@@ -100,19 +100,19 @@ fn fetch_image(uri: &str, target_fname: &Path, digest: &Sha256, curl_handle: &mu
     Ok(())
 }
 
-/// Create the symlink to the target path.
+/// Create the symlink to the target path `store/<hexdigest>`.
 ///
 /// This is a no-op if the symlink exists and points to the target path already.
-fn update_symlink(config: &Config, target: &Path) -> io::Result<()> {
+fn update_symlink<P: AsRef<Path>>(config: &Config, target_path: P) -> io::Result<()> {
     let mut sympath = config.destination.clone();
     sympath.push("latest");
 
     match sympath.read_link() {
-        Ok(ref points_at) if points_at == target => return Ok(()),
+        Ok(ref points_at) if points_at == target_path.as_ref() => return Ok(()),
         // Other cases are nonexisting symlink, or symlink pointing at
         // something else than the target. In both cases we create (overwrite)
         // the symlink.
-        _ => unix::fs::symlink(target, sympath)
+        _ => unix::fs::symlink(target_path.as_ref(), sympath)
     }
 }
 
@@ -133,13 +133,14 @@ pub fn fetch(config_fname: &str) -> Result<()> {
     let prefix_len = uri.len();
     uri.push_str("store/");
     util::append_hex(&mut uri, candidate.digest.as_ref());
+    let store_path = &uri[prefix_len..];
 
     println!("Fetching {} from {} ...", candidate.version.as_str(), uri);
 
     // The target filename is store/<hexdigest> in the configured
     // destination directory.
     let mut target_fname = config.destination.clone();
-    target_fname.push(&uri[prefix_len..]);
+    target_fname.push(store_path);
 
     // Create the store directory inside the target directory, if it does not
     // exist already. Do not create any of the parent dirs, this is the
@@ -167,7 +168,7 @@ pub fn fetch(config_fname: &str) -> Result<()> {
         fetch_image(&uri, &target_fname, &candidate.digest, &mut curl_handle)?;
     }
 
-    update_symlink(&config, &target_fname)?;
+    update_symlink(&config, &store_path)?;
 
     Ok(())
 }
