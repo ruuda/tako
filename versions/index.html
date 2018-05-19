@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  
+  <link rel="shortcut icon" href="../img/favicon.ico">
+  <title>Versions - Tako</title>
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
+
+  <link rel="stylesheet" href="../css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../css/theme_extra.css" type="text/css" />
+  <link rel="stylesheet" href="../css/highlight.css">
+  
+  <script>
+    // Current page data
+    var mkdocs_page_name = "Versions";
+    var mkdocs_page_input_path = "versions.md";
+    var mkdocs_page_url = "/versions/";
+  </script>
+  
+  <script src="../js/jquery-2.1.1.min.js"></script>
+  <script src="../js/modernizr-2.8.3.min.js"></script>
+  <script type="text/javascript" src="../js/highlight.pack.js"></script> 
+  
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+      <div class="wy-side-nav-search">
+        <a href=".." class="icon icon-home"> Tako</a>
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+	<ul class="current">
+	  
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="..">Overview</a>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <span class="caption-text">User Guide</span>
+    <ul class="subnav">
+                <li class="">
+                    
+    <a class="" href="../downloading-images/">Downloading Images</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../distributing-images/">Distributing Images</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../configuration/">Configuration</a>
+                </li>
+                <li class=" current">
+                    
+    <a class="current" href="./">Versions</a>
+    <ul class="subnav">
+            
+    <li class="toctree-l3"><a href="#versions">Versions</a></li>
+    
+        <ul>
+        
+            <li><a class="toctree-l4" href="#patterns">Patterns</a></li>
+        
+            <li><a class="toctree-l4" href="#syntax">Syntax</a></li>
+        
+            <li><a class="toctree-l4" href="#ordering">Ordering</a></li>
+        
+        </ul>
+    
+
+    </ul>
+                </li>
+    </ul>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <span class="caption-text">Reference</span>
+    <ul class="subnav">
+                <li class="">
+                    
+    <a class="" href="../tako-fetch/">tako fetch</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../tako-store/">tako store</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../tako-gen-key/">tako gen-key</a>
+                </li>
+    </ul>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <span class="caption-text">Internals</span>
+    <ul class="subnav">
+                <li class="">
+                    
+    <a class="" href="../manifest-format/">Manifest Format</a>
+                </li>
+    </ul>
+	    </li>
+          
+        </ul>
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="..">Tako</a>
+      </nav>
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="..">Docs</a> &raquo;</li>
+    
+      
+        
+          <li>User Guide &raquo;</li>
+        
+      
+    
+    <li>Versions</li>
+    <li class="wy-breadcrumbs-aside">
+      
+        <a href="https://github.com/ruuda/tako/edit/master/docs/versions.md"
+          class="icon icon-github"> Edit on GitHub</a>
+      
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main">
+            <div class="section">
+              
+                <h1 id="versions">Versions</h1>
+<p>Tako does not enforce any particular versioning scheme. Instead it implements a
+simple version parser and constraint resolver that is compatible with most
+versioning schemes, such as <a href="https://semver.org/">Semantic Versioning</a>.</p>
+<h2 id="patterns">Patterns</h2>
+<p>Compatible versions are selected by matching versions against a pattern.
+A pattern is either a <strong>wildcard pattern</strong> or a <strong>bounds pattern</strong>.</p>
+<ul>
+<li>A wildcard pattern is a version that may end in <code>*</code>.</li>
+<li>A bounds pattern specifies an inclusive lower bound and an exclusive upper
+   bound separated by <code>&lt;= v &lt;</code>.</li>
+</ul>
+<p>Some examples:</p>
+<ul>
+<li><code>*</code> matches any version.</li>
+<li><code>1.*</code> matches <code>1.0</code>, <code>1.1</code>, <code>1.2</code>, etc., but not <code>2.0</code>, or <code>0.1</code>.
+   It does match <code>1</code> and <code>1.0.0</code>, which are both equivalent to <code>1.0</code>.</li>
+<li><code>1.13.7</code> matches <code>1.13.7</code>. It also matches <code>1.13.7.0</code>, <code>1.13.7.0.0</code>,
+   etc., which are equivalent to <code>1.13.7</code>. Such a pattern can be used for
+   version pinning.</li>
+<li><code>1.0 &lt;= v &lt; 2.0</code> is the same as <code>1.*</code>.</li>
+<li><code>2.3 &lt;= v &lt; 3.0</code> matches versions that are <a href="https://semver.org/">semver-compatible</a>
+   with 2.3.</li>
+</ul>
+<h2 id="syntax">Syntax</h2>
+<p>Versions consist of <strong>parts</strong> separated by <strong>separators</strong>.</p>
+<ul>
+<li>A part is either numeric or a string. A numeric part is an unsigned integer.</li>
+<li>A separator is one of <code>.</code>, <code>-</code>, and <code>_</code>.</li>
+</ul>
+<p>Versions map to a list of parts. Some examples:</p>
+<ul>
+<li><code>1.0.0</code> ⇒ <code>[1, 0, 0]</code></li>
+<li><code>1.0.0-beta</code> ⇒ <code>[1, 0, 0, "beta"]</code></li>
+<li><code>1.0.0-beta-25856-ge63d979e22</code> ⇒ <code>[1, 1, 0, "beta", 25856, "ge63d979e22"]</code></li>
+<li><code>1.0.0-beta.2</code> ⇒ <code>[1, 0, 0, "beta", 2]</code></li>
+<li><code>1.1.0.h-1</code> ⇒ <code>[1, 1, 0, "h", 1]</code></li>
+<li><code>66.0.3359.117-1</code> ⇒ <code>[66, 0, 3359, 117, 1]</code></li>
+<li><code>1.2a</code> ⇒ <code>[1, "2a"]</code></li>
+</ul>
+<h2 id="ordering">Ordering</h2>
+<p>Versions are ordered conventionally. They are compared part by part. String
+parts order before numeric parts, and string parts order lexicographically.
+Versions are implicitly padded with zero parts: when two versions with a
+different number of parts are compared, the shorter one is padded with zeros.
+It is generally a bad idea to use a versioning scheme with a variable number
+of parts though. Separator characters do not affect ordering.</p>
+<p>Some examples:</p>
+<ul>
+<li><code>1.0.0</code> &lt; <code>2.0.0</code></li>
+<li><code>1.0.0</code> &lt; <code>1.1.0</code></li>
+<li><code>1.0.0</code> &lt; <code>1.0.1</code></li>
+<li><code>1</code> = <code>1.0</code></li>
+<li><code>1-0</code> = <code>1.0</code></li>
+<li><code>1.a</code> &lt; <code>1.0</code> (string parts order before numeric parts)</li>
+<li><code>1.0.0.a</code> &lt; <code>1.0.0</code> (string parts order before the implicit zero part)</li>
+<li><code>1.0.a</code> &lt; <code>1.0.b</code></li>
+<li><code>1.0.0-beta.1</code> &lt; <code>1.0.0</code> (string parts order before the implicit zero part)</li>
+<li><code>1.0.0-beta</code> &lt; <code>1.0.0-beta.1</code> (implicit zero orders before 1)</li>
+<li><code>1.0.0-beta.1</code> &lt; <code>1.0.0-beta.2</code></li>
+<li><code>1.2a</code> &lt; <code>1.1</code> (string parts order before numeric parts)</li>
+</ul>
+<p>Some of these might be counterintuitive. Unfortunately we cannot have both of
+the following be true without complicating the comparison rules.</p>
+<ul>
+<li><code>1.0-beta.1</code> &lt; <code>1.0</code>.</li>
+<li><code>1.0</code> &lt; <code>1.0.a</code></li>
+</ul>
+<p>Tako implements the first choice, and hence <code>1.0.a</code> &lt; <code>1.0</code>. To avoid
+confusion, use a versioning scheme that has a fixed number of parts.</p>
+              
+            </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="../tako-fetch/" class="btn btn-neutral float-right" title="tako fetch">Next <span class="icon icon-circle-arrow-right"></span></a>
+      
+      
+        <a href="../configuration/" class="btn btn-neutral" title="Configuration"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+    
+  </div>
+
+  Built with <a href="http://www.mkdocs.org">MkDocs</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+      
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" style="cursor: pointer">
+    <span class="rst-current-version" data-toggle="rst-current-version">
+      
+          <a href="https://github.com/ruuda/tako/" class="fa fa-github" style="float: left; color: #fcfcfc"> GitHub</a>
+      
+      
+        <span><a href="../configuration/" style="color: #fcfcfc;">&laquo; Previous</a></span>
+      
+      
+        <span style="margin-left: 15px"><a href="../tako-fetch/" style="color: #fcfcfc">Next &raquo;</a></span>
+      
+    </span>
+</div>
+    <script>var base_url = '..';</script>
+    <script src="../js/theme.js"></script>
+      <script src="../search/require.js"></script>
+      <script src="../search/search.js"></script>
+
+</body>
+</html>

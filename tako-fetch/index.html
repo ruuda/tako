@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  
+  <link rel="shortcut icon" href="../img/favicon.ico">
+  <title>tako fetch - Tako</title>
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
+
+  <link rel="stylesheet" href="../css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../css/theme_extra.css" type="text/css" />
+  <link rel="stylesheet" href="../css/highlight.css">
+  
+  <script>
+    // Current page data
+    var mkdocs_page_name = "tako fetch";
+    var mkdocs_page_input_path = "tako-fetch.md";
+    var mkdocs_page_url = "/tako-fetch/";
+  </script>
+  
+  <script src="../js/jquery-2.1.1.min.js"></script>
+  <script src="../js/modernizr-2.8.3.min.js"></script>
+  <script type="text/javascript" src="../js/highlight.pack.js"></script> 
+  
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+      <div class="wy-side-nav-search">
+        <a href=".." class="icon icon-home"> Tako</a>
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+	<ul class="current">
+	  
+          
+            <li class="toctree-l1">
+		
+    <a class="" href="..">Overview</a>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <span class="caption-text">User Guide</span>
+    <ul class="subnav">
+                <li class="">
+                    
+    <a class="" href="../downloading-images/">Downloading Images</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../distributing-images/">Distributing Images</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../configuration/">Configuration</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../versions/">Versions</a>
+                </li>
+    </ul>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <span class="caption-text">Reference</span>
+    <ul class="subnav">
+                <li class=" current">
+                    
+    <a class="current" href="./">tako fetch</a>
+    <ul class="subnav">
+            
+    <li class="toctree-l3"><a href="#tako-fetch">tako fetch</a></li>
+    
+        <ul>
+        
+            <li><a class="toctree-l4" href="#synopsis">Synopsis</a></li>
+        
+            <li><a class="toctree-l4" href="#description">Description</a></li>
+        
+            <li><a class="toctree-l4" href="#options">Options</a></li>
+        
+        </ul>
+    
+
+    </ul>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../tako-store/">tako store</a>
+                </li>
+                <li class="">
+                    
+    <a class="" href="../tako-gen-key/">tako gen-key</a>
+                </li>
+    </ul>
+	    </li>
+          
+            <li class="toctree-l1">
+		
+    <span class="caption-text">Internals</span>
+    <ul class="subnav">
+                <li class="">
+                    
+    <a class="" href="../manifest-format/">Manifest Format</a>
+                </li>
+    </ul>
+	    </li>
+          
+        </ul>
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="..">Tako</a>
+      </nav>
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="..">Docs</a> &raquo;</li>
+    
+      
+        
+          <li>Reference &raquo;</li>
+        
+      
+    
+    <li>tako fetch</li>
+    <li class="wy-breadcrumbs-aside">
+      
+        <a href="https://github.com/ruuda/tako/edit/master/docs/tako-fetch.md"
+          class="icon icon-github"> Edit on GitHub</a>
+      
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main">
+            <div class="section">
+              
+                <h1 id="tako-fetch">tako fetch</h1>
+<p>Download or update an image.</p>
+<h2 id="synopsis">Synopsis</h2>
+<pre><code>tako fetch [--init] [--] &lt;config&gt;...
+tako fetch -h | --help
+</code></pre>
+<h2 id="description">Description</h2>
+<p>This command takes one or more <a href="../configuration/">config files</a>. For every
+provided config file, it:</p>
+<ul>
+<li>Downloads the latest manifest from the remote into the destination directory.</li>
+<li>Dowloads the latest image, if a newer compatible version exists.</li>
+<li>Symlinks <code>latest</code> in the destination directory to the newly downloaded image.</li>
+<li>Restarts any configured systemd units.</li>
+</ul>
+<h2 id="options">Options</h2>
+<h3 id="-init"><code>--init</code></h3>
+<p>If this option is enabled, Tako checks if <code>manifest</code> and <code>latest</code> exist in the
+destination directory. If <code>latest</code> points to a valid image, Tako exits
+immediately without checking for new versions. In other words, Tako performs a
+minimal amount of work while still guaranteeing that an image exists in the
+destination directory if the command exits successfully.</p>
+<p>This option can be used to provision an clean system with an initial image.
+Running <code>tako fetch</code> before starting an application that depends on the image
+managed by Tako ensures that the image exists when the application starts. When
+Tako exits with a zero exit code, the image is guaranteed to exist. However,
+without <code>--init</code> Tako will always download the manifest, and possibly
+download a new image, even if an older compatible image exists that could be
+used. This delays application startup, and may prevent startup entirely if
+fetching fails (due to connectivity issues, for instance). With <code>--init</code>, Tako
+only performs any work if required to start the dependent application.</p>
+              
+            </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="../tako-store/" class="btn btn-neutral float-right" title="tako store">Next <span class="icon icon-circle-arrow-right"></span></a>
+      
+      
+        <a href="../versions/" class="btn btn-neutral" title="Versions"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+    
+  </div>
+
+  Built with <a href="http://www.mkdocs.org">MkDocs</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+      
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" style="cursor: pointer">
+    <span class="rst-current-version" data-toggle="rst-current-version">
+      
+          <a href="https://github.com/ruuda/tako/" class="fa fa-github" style="float: left; color: #fcfcfc"> GitHub</a>
+      
+      
+        <span><a href="../versions/" style="color: #fcfcfc;">&laquo; Previous</a></span>
+      
+      
+        <span style="margin-left: 15px"><a href="../tako-store/" style="color: #fcfcfc">Next &raquo;</a></span>
+      
+    </span>
+</div>
+    <script>var base_url = '..';</script>
+    <script src="../js/theme.js"></script>
+      <script src="../search/require.js"></script>
+      <script src="../search/search.js"></script>
+
+</body>
+</html>
