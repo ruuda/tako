@@ -13,4 +13,4 @@ rust:
 script:
   - cargo build
   - cargo test
-  - tests/run.py
+  - python3.6 tests/run.py
