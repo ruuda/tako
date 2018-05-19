@@ -4,6 +4,12 @@ repo_url: https://github.com/ruuda/tako
 strict: true
 pages:
   - Overview: index.md
-  - Configuration: configuration.md
-  - Versions: versions.md
-  - Manifest Format: manifest-format.md
+  - User Guide:
+    - Configuration: configuration.md
+    - Versions: versions.md
+  - Reference:
+    - tako fetch: tako-fetch.md
+    - tako store: tako-store.md
+    - tako gen-key: tako-gen-key.md
+  - Internals:
+    - Manifest Format: manifest-format.md

@@ -25,6 +25,12 @@ as easy as copying over the binary.
  * [Configuration](configuration.md)
  * [Versions](versions.md)
 
+## Reference
+
+ * [`tako fetch`](tako-fetch.md)
+ * [`tako store`](tako-store.md)
+ * [`tako gen-key`](tako-gen-key.md)
+
 ## Internals
 
  * [Manifest Format](manifest-format.md)

@@ -29,7 +29,7 @@ allowed, but not required.
 
 Public key used to verify image interity and authenthicity. The public key
 should be announced by the distributor of the image. Distributors can generate
-a key pair with `tako gen-key`.
+a key pair with [`tako gen-key`](tako-gen-key.md).
 
 ### `Destination=`
 
