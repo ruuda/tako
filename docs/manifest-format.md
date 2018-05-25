@@ -9,9 +9,9 @@ The manifest starts with a line `Tako Manifest 1` that identifies the file as
 a manifest.
 
 After the header is a blank line. Then follows one image version per line,
-formatted as the version number, a space, and the hexadecimally encoded SHA256
-of the image. This makes it easy to use `sha256sum` as a sanity check. Versions
-are sorted by version number.
+formatted as the version number, a space, the file size in bytes, a space, and
+the hexadecimally encoded SHA256 of the image. This makes it easy to use
+`sha256sum` as a sanity check. Versions are sorted by version number.
 
 After the image versions is again a blank line, followed by the base64-encoded
 Ed25519 signature of all of the preceding content (including newlines).
@@ -23,9 +23,9 @@ the entire file is valid ascii, and also valid UTF-8.
 
     Tako Manifest 1
 
-    1.0.0 b101acf3c4870594bb4363090d5ab966c193fb329e2f2db2096708e08c4913e2
-    1.1.0 9641a49d02e90cbb6213f202fb632da70cdc59073d42283cfcdc1d786454f17f
-    2.0.0 b7b01c6f6772529c66b945e559cb1f46546ef62063e44c1d1068725157ae1cda
+    1.0.0 10092569 b101acf3c4870594bb4363090d5ab966c193fb329e2f2db2096708e08c4913e2
+    1.1.0 11239411 9641a49d02e90cbb6213f202fb632da70cdc59073d42283cfcdc1d786454f17f
+    2.0.0 11862029 b7b01c6f6772529c66b945e559cb1f46546ef62063e44c1d1068725157ae1cda
 
     fQK92C/tPnH0uqxrTEnU+LEE4jnSpQPbOItph4kGAEfWEmn6wPXiQsSdXlDmoneaJkG6KLvInTvB7FlELoeQFg==
 
@@ -55,3 +55,5 @@ a GPG-signed `SHASUMS` file.
   accidentally releasing different images under the same version number. It also
   ensures that clients which did download the image can still identify it, so
   they do not end up running a mysterous image without record of existence.
+* The size of each image is included, and signed, so malicious mirrors cannot
+  cause clients to download large files that would fill up their disks.
