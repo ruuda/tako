@@ -28,6 +28,7 @@ use version::Version;
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Entry {
     pub version: Version,
+    pub len: u64,
     pub digest: Sha256,
 }
 
@@ -79,11 +80,25 @@ fn parse_hex(ch: u8) -> Option<u8> {
 
 /// Parse a single entry line.
 fn parse_entry(line: &[u8]) -> Result<Entry> {
-    let mid_opt = line.iter().cloned().enumerate().filter(|&(_, ch)| ch == b' ').next();
+    // Split the line into three parts separated by spaces.
+    let mut split = line.split(|ch| *ch == b' ');
+
+    let version_bytes = split.next().unwrap();
+
     let msg = "Invalid manifest entry, expected a space after version number.";
-    let mid = mid_opt.map(|i_ch| i_ch.0).ok_or(Error::InvalidManifest(msg))?;
-    let version_bytes = &line[..mid];
-    let sha256_hex = &line[mid + 1..];
+    let len_bytes = split.next().ok_or(Error::InvalidManifest(msg))?;
+
+    let msg = "Invalid manifest entry, file size is not a decimal number.";
+    let len_str = str::from_utf8(len_bytes).or(Err(Error::InvalidManifest(msg)))?;
+    let len = u64::from_str_radix(len_str, 10).or(Err(Error::InvalidManifest(msg)))?;
+
+    let msg = "Invalid manifest entry, expected a space after file size.";
+    let sha256_hex = split.next().ok_or(Error::InvalidManifest(msg))?;
+
+    if split.next().is_some() {
+        let msg = "Invalid manifest entry, unexpected space after digest.";
+        return Err(Error::InvalidManifest(msg));
+    }
 
     let version = match str::from_utf8(version_bytes) {
         Ok(s) => s.to_string(),
@@ -115,6 +130,7 @@ fn parse_entry(line: &[u8]) -> Result<Entry> {
 
     let entry = Entry {
         version: Version::new(version),
+        len: len,
         digest: Sha256(sha256),
     };
 
@@ -372,15 +388,17 @@ mod test {
     fn get_test_entry(version: &'static str) -> Entry {
         Entry {
             version: Version::from(version),
+            len: 17,
             digest: get_test_sha256(),
         }
     }
 
     #[test]
     fn parse_entry_parses_entry() {
-        let raw = b"1.1.0 9641a49d02e90cbb6213f202fb632da70cdc59073d42283cfcdc1d786454f17f";
+        let raw = b"1.1.0 409 9641a49d02e90cbb6213f202fb632da70cdc59073d42283cfcdc1d786454f17f";
         let entry = parse_entry(&raw[..]).unwrap();
         assert_eq!(&entry.version.as_str(), &"1.1.0");
+        assert_eq!(entry.len, 409);
         assert_eq!(entry.digest, get_test_sha256());
     }
 

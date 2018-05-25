@@ -79,7 +79,8 @@ pub fn store(store: Store) -> Result<()> {
     }
 
     // The store should be immutable, make the file readonly.
-    let mut perms = fs::metadata(&target_fname)?.permissions();
+    let metadata = fs::metadata(&target_fname)?;
+    let mut perms = metadata.permissions();
     perms.set_readonly(true);
     fs::set_permissions(&target_fname, perms)?;
 
@@ -88,6 +89,7 @@ pub fn store(store: Store) -> Result<()> {
     // Add the new entry to the manifest.
     let entry = Entry {
         version: store.version,
+        len: metadata.len(),
         digest: digest,
     };
     manifest.insert(entry)?;
