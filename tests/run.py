@@ -112,7 +112,6 @@ print('\n# tako store\n')
 
 img_v1_sha = 'a18339e497c231154b9d06c809ef7e03a44cd59eb74217c64886b00696ce7062'
 
-# print(' * stores into an empty server directory')
 with test('Stores into an empty server directory'):
     exec('target/debug/tako', 'store',
          '--key', secret_key,
@@ -162,10 +161,29 @@ with test('Deletes a damaged image'):
     exec('target/debug/tako', 'fetch', 'tests/config/foo-any.tako', expect=101)
     assert not os.path.exists(foo_store_img_v2)
 
-with test('Fetches a previously stored manifest'):
+with test('Fetches a previously stored manifest and image'):
     exec('target/debug/tako', 'fetch', 'tests/config/bar.tako')
     assert os.path.exists('tests/scratch/bar/manifest')
     assert os.readlink('tests/scratch/bar/latest') == 'store/' + img_v1_sha
+
+with test('Aborts a fetch if the remote serves a larger file than expected.'):
+    # Make the origin serve a file that is larger than advertised in the
+    # manifest by appending some bytes to the file in the remote store.
+    # TODO: I should have a special binary to make malicious manifests, that do
+    # have a good sha256sum for the larger file, but a size in the manifest that
+    # does not match.
+    fname = 'tests/scratch/bar-origin/store/' + img_v1_sha
+    os.chmod(fname, int('755', 8))
+    with open(fname, 'w') as f:
+        f.write('E X T R A   B Y T E S')
+    os.chmod(fname, int('555', 8))
+
+    # Remove the local file so Tako will download it again.
+    os.remove('tests/scratch/bar/store/' + img_v1_sha)
+    exec('target/debug/tako', 'fetch', 'tests/config/bar.tako')
+    # TODO: Expect error message, so we know it was not the sha256sum that
+    # failed?
+    assert not os.path.exists('tests/scratch/bar/store/' + img_v1_sha)
 
 # TODO: Test that Tako follows redirects.
 # TODO: Test that Tako handles file-not-found correctly (whatever that means).
