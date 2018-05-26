@@ -245,16 +245,20 @@ impl Manifest {
 
     /// Print the manifest as a string and sign it, the inverse of `parse`.
     pub fn serialize(&self, key_pair: &Ed25519KeyPair) -> String {
+        use std::fmt::Write;
+
         // Premature optimization: estimate the output size, so we have to do
         // only a single allocation. 18 bytes for header (including newlines),
-        // 64 bytes per entry for the hash, 15 for version, space, and newline.
-        // And then 90 bytes for the signature including newlines.
-        let n = 18 + self.entries.len() * (15 + 64) + 90;
+        // 64 bytes per entry for the hash, 25 for version, spaces, file size,
+        // and newline. And then 90 bytes for the signature including newlines.
+        let n = 18 + self.entries.len() * (25 + 64) + 90;
         let mut out = String::with_capacity(n);
 
         out.push_str("Tako Manifest 1\n\n");
         for entry in &self.entries {
             out.push_str(entry.version.as_str());
+            out.push(' ');
+            write!(out, "{}", entry.len).unwrap();
             out.push(' ');
             util::append_hex(&mut out, &entry.digest.as_ref());
             out.push('\n');
@@ -455,8 +459,8 @@ mod test {
         };
         let serialized = manifest.serialize(&get_test_key_pair());
         let expected = "Tako Manifest 1\n\n\
-            1.0.0 9641a49d02e90cbb6213f202fb632da70cdc59073d42283cfcdc1d786454f17f\n\n\
-            ttye/o4X1aOQQwk8Rf9OHLyqhfhi440qgH8cxw8ol/UgoSj7e1tQbhoA44Q+vEonigVwPMl82j6T0X7hTbziAQ==\n";
+            1.0.0 17 9641a49d02e90cbb6213f202fb632da70cdc59073d42283cfcdc1d786454f17f\n\n\
+            WezSd49tB4ng/nbRZWWfLak+Sn1pUcOoA6X5pSg2MMOGRR4Lz0XYznFKKVj/E8vCCdmt3pQO4xTFyKlMUq1SCQ==\n";
         assert_eq!(serialized, expected);
     }
 
