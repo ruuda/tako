@@ -75,6 +75,7 @@ impl Handle {
                 // place that we overwrite immediately.
                 let current_result = mem::replace(result_ref, Ok(()));
                 *result_ref = current_result.and(on_data(chunk));
+                // TODO: If an error is returned, stop the download.
             })?;
         }
         result?;
