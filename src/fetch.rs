@@ -44,6 +44,8 @@ pub fn fetch_manifest(config: &Config, curl_handle: &mut curl::Handle) -> Result
     if !uri.ends_with("/") { uri.push('/'); }
     uri.push_str("manifest");
 
+    // TODO: Put a limit on the size of the manifest, to protect against
+    // malicious mirrors serving large manifests that fill up the disk.
     let mut manifest_bytes = Vec::new();
     curl_handle.download(&uri, |chunk| manifest_bytes.extend_from_slice(chunk))?;
 
