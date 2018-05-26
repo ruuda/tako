@@ -69,7 +69,13 @@ pub fn fetch_manifest(config: &Config, curl_handle: &mut curl::Handle) -> Result
     Ok(remote_manifest)
 }
 
-fn fetch_image(uri: &str, target_fname: &Path, digest: &Sha256, curl_handle: &mut curl::Handle) -> Result<()> {
+fn fetch_image(
+    uri: &str,
+    target_fname: &Path,
+    len: u64,
+    digest: &Sha256,
+    curl_handle: &mut curl::Handle
+) -> Result<()> {
     // Download to store/<hexdigest>.new. Then later rename the file to its
     // final path. This ensures that when the program crashes or is killed mid-
     // download, next time we will start the download again immediately. Also,
@@ -84,9 +90,17 @@ fn fetch_image(uri: &str, target_fname: &Path, digest: &Sha256, curl_handle: &mu
     {
         let ctx_ref = &mut ctx;
         let mut f = BufWriter::new(fs::File::create(&tmp_fname)?);
+        let mut bytes_written = 0;
         curl_handle.download_io(uri, |chunk| {
-            ctx_ref.update(chunk);
-            f.write_all(chunk)
+            if bytes_written + chunk.len() as u64 > len {
+                let msg = "Image size exceeds size specified in manifest.";
+                let err = io::Error::new(io::ErrorKind::Other, msg);
+                Err(err)
+            } else {
+                bytes_written += chunk.len() as u64;
+                ctx_ref.update(chunk);
+                f.write_all(chunk)
+            }
         })?;
     }
     let actual_digest = ctx.finish();
@@ -171,7 +185,7 @@ pub fn fetch(config_fname: &str) -> Result<()> {
     } else {
         // If the file was not in the store, download it. This performs an on
         // the fly integrity check.
-        fetch_image(&uri, &target_fname, &candidate.digest, &mut curl_handle)?;
+        fetch_image(&uri, &target_fname, candidate.len, &candidate.digest, &mut curl_handle)?;
     }
 
     update_symlink(&config, &store_path)?;
