@@ -418,8 +418,8 @@ mod test {
     #[test]
     fn parse_parses_single_entry_manifest() {
         let raw = b"Tako Manifest 1\n\n\
-            1.0.0 b101acf3c4870594bb4363090d5ab966c193fb329e2f2db2096708e08c4913e2\n\n\
-            R9fjMZ9e2c5IrfByS53H6ur0VSWQfdTgAS2Y3t3lYcH9+ogDGtrbe65GhgEmDDD20Gfy8VyZQ82byF+NSANwDg==\n";
+            1.0.0 137 a18339e497c231154b9d06c809ef7e03a44cd59eb74217c64886b00696ce7062\n\n\
+            FQGg+tqx5xqtyQT3vKYsxzuTbfnDwmDK7uPzCG5XZ4bCFvgRNl79xEMR8NuWJa/VKkx0QCitGPFzNokvte2pBw==\n";
         let manifest = Manifest::parse(&raw[..], &get_test_public_key()).unwrap();
         assert_eq!(manifest.entries.len(), 1);
     }
@@ -430,7 +430,7 @@ mod test {
         // the signature. The data above has a correct signature, so the
         // signature here must be wrong.
         let raw = b"Tako Manifest 1\n\n\
-            1.0.0 b101acf3c4870594bb4363090d5ab966c193fb329e2f2db2096708e08c4913e2\n\n\
+            1.0.0 137 a18339e497c231154b9d06c809ef7e03a44cd59eb74217c64886b00696ce7062\n\n\
             fQK92C/tPnH0uqxrTEnU+LEE4jnSpQPbOItph4kGAEfWEmn6wPXiQsSdXlDmoneaJkG6KLvInTvB7FlELoeQFg==\n";
         match Manifest::parse(&raw[..], &get_test_public_key()) {
             Err(Error::InvalidSignature) => { /* This is expected. */ },
@@ -441,9 +441,9 @@ mod test {
     #[test]
     fn parse_parses_double_entry_manifest() {
         let raw = b"Tako Manifest 1\n\n\
-            1.0.0 b101acf3c4870594bb4363090d5ab966c193fb329e2f2db2096708e08c4913e2\n\
-            2.0.0 b7b01c6f6772529c66b945e559cb1f46546ef62063e44c1d1068725157ae1cda\n\n\
-            LxHj9lwxekDPgmZmhutklX65IZNV8KAVDEncot9JEo0Spsr2FVlcWkId7IFHwvR+5lxcKVxIAcgz3pf0vC7ABQ==\n";
+            1.0.0 137 a18339e497c231154b9d06c809ef7e03a44cd59eb74217c64886b00696ce7062\n\
+            2.0.0 137 64358f43b990c1473817773028ff27029f4d367bf06595b6948d746fece678cd\n\n\
+            YVI6H8q4w2uQEG/LHVy/BEqxh8jBTRpUFc0f59hIOw7XUAr1ujzaBnxh34bimpNgPhFkztEhZlus2VT1GI1KCg==\n";
         let manifest = Manifest::parse(&raw[..], &get_test_public_key()).unwrap();
         assert_eq!(manifest.entries.len(), 2);
     }
