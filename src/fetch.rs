@@ -90,14 +90,14 @@ fn fetch_image(
     {
         let ctx_ref = &mut ctx;
         let mut f = BufWriter::new(fs::File::create(&tmp_fname)?);
-        let mut bytes_written = 0;
+        let bytes_written = &mut 0;
         curl_handle.download_io(uri, |chunk| {
-            if bytes_written + chunk.len() as u64 > len {
+            if *bytes_written + chunk.len() as u64 > len {
                 let msg = "Image size exceeds size specified in manifest.";
                 let err = io::Error::new(io::ErrorKind::Other, msg);
                 Err(err)
             } else {
-                bytes_written += chunk.len() as u64;
+                *bytes_written += chunk.len() as u64;
                 ctx_ref.update(chunk);
                 f.write_all(chunk)
             }

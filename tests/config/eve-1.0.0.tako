@@ -1,0 +1,8 @@
+# The tests spin up a local webserver at port 8117.
+Origin=http://127.0.0.1:8117/tests/origin/eve
+Destination=tests/scratch/eve
+
+# The public key of the test key pair. See also src/manifest.rs.
+PublicKey=l0D28J2fiIXvWPbeZP7wkaq+dB55Gl2ysigl9mQH29k=
+
+Version=1.0.0

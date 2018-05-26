@@ -19,7 +19,7 @@ import traceback
 
 # Print the number of tests in advance. This is understood by the TAP protocol,
 # and used to recognize failure when the script unexpectedly exits early.
-print('1..7')
+print('1..10')
 
 is_repo_root = os.path.exists(os.path.join(os.getcwd(), 'README.md'))
 assert is_repo_root, 'This script must be run from the root of the repository.'
@@ -53,6 +53,7 @@ def exec(*args, expect=0):
     p = subprocess.run(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     if p.returncode != expect:
         raise ExecError(args, p.returncode, p.stdout, p.stderr)
+    return (p.stdout + p.stderr).decode('utf-8')
 
 
 @contextlib.contextmanager
@@ -101,9 +102,10 @@ secret_key = ('MFMCAQEwBQYDK2VwBCIEIHRlc3Qta2V5LXZlcnktc2VjdXJpdHktc3VjaC'
 shutil.rmtree('tests/scratch', ignore_errors=True)
 assert not os.path.exists('tests/scratch')
 os.mkdir('tests/scratch')
-os.mkdir('tests/scratch/foo')
 os.mkdir('tests/scratch/bar')
 os.mkdir('tests/scratch/bar-origin')
+os.mkdir('tests/scratch/eve')
+os.mkdir('tests/scratch/foo')
 
 # Print a backtrace if the Rust program crashes.
 os.environ['RUST_BACKTRACE'] = '1'
@@ -166,24 +168,39 @@ with test('Fetches a previously stored manifest and image'):
     assert os.path.exists('tests/scratch/bar/manifest')
     assert os.readlink('tests/scratch/bar/latest') == 'store/' + img_v1_sha
 
-with test('Aborts a fetch if the remote serves a larger file than expected.'):
-    # Make the origin serve a file that is larger than advertised in the
-    # manifest by appending some bytes to the file in the remote store.
-    # TODO: I should have a special binary to make malicious manifests, that do
-    # have a good sha256sum for the larger file, but a size in the manifest that
-    # does not match.
-    fname = 'tests/scratch/bar-origin/store/' + img_v1_sha
-    os.chmod(fname, int('755', 8))
-    with open(fname, 'w') as f:
-        f.write('E X T R A   B Y T E S')
-    os.chmod(fname, int('555', 8))
+print('\n# tako fetch, when fetching from malicious origin\n')
 
-    # Remove the local file so Tako will download it again.
-    os.remove('tests/scratch/bar/store/' + img_v1_sha)
-    exec('target/debug/tako', 'fetch', 'tests/config/bar.tako')
-    # TODO: Expect error message, so we know it was not the sha256sum that
-    # failed?
-    assert not os.path.exists('tests/scratch/bar/store/' + img_v1_sha)
+with test('Aborts a fetch if the remote serves a larger file than expected.'):
+    # Version 1.0.0 in Eve's manifest is sabotaged such that the listed size is
+    # 136 bytes, but the actual file served is 137 bytes. Therefore, Tako should
+    # abort the download, as the file is too large.
+    config = 'tests/config/eve-1.0.0.tako'
+    # TODO: Exit code should be 1 due to failure, not 101 for panic.
+    out = exec('target/debug/tako', 'fetch', config, expect=101)
+    assert 'size exceeds size specified in manifest' in out
+    assert len(os.listdir('tests/scratch/eve/store')) == 0
+    assert not os.path.exists('tests/scratch/eve/latest')
+
+with test('Aborts if the remote serves a file smaller than expected.'):
+    # Version 1.1.0 in Eve's manifest is sabotaged such that the listed size is
+    # 138 bytes, but the actual file served is 137 bytes. Therefore, Tako should
+    # reject the file. The digest listed in the manifest does match the shorter
+    # file though, so the digest check will not catch this.
+    config = 'tests/config/eve-1.1.0.tako'
+    # TODO: Exit code should be 1 due to failure, not 101 for panic.
+    exec('target/debug/tako', 'fetch', config, expect=101)
+    assert len(os.listdir('tests/scratch/eve/store')) == 0
+    assert not os.path.exists('tests/scratch/eve/latest')
+
+with test('Aborts if the remote serves a file with wrong digest.'):
+    # The contents of version 2.0.0 in Eve's store are sabotaged such that the
+    # digest will no longer match, even though the size is still the same.
+    config = 'tests/config/eve-2.0.0.tako'
+    # TODO: Exit code should be 1 due to failure, not 101 for panic.
+    out = exec('target/debug/tako', 'fetch', config, expect=101)
+    assert 'InvalidDigest' in out
+    assert len(os.listdir('tests/scratch/eve/store')) == 0
+    assert not os.path.exists('tests/scratch/eve/latest')
 
 # TODO: Test that Tako follows redirects.
 # TODO: Test that Tako handles file-not-found correctly (whatever that means).

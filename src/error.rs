@@ -50,7 +50,7 @@ pub enum Error {
     ///
     /// This can happen for two reasons:
     ///
-    ///  * The version exists and has a different digest.
+    ///  * The version exists and has a different digest or size.
     ///  * Two versions differ only by separators, e.g. `1.0` and `1-0`.
     Duplicate(Version),
 
