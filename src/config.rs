@@ -98,7 +98,9 @@ impl Config {
                         destination = Some(PathBuf::from(value));
                     }
                     "Restart" => {
-                        restart_units.push(String::from(value));
+                        for unit in value.split(|ch| ch == ' ') {
+                            restart_units.push(String::from(unit));
+                        }
                     }
                     _ => {
                         let msg = "Unknown key. Expected one of \
@@ -194,6 +196,33 @@ mod test {
         ];
         let config = Config::parse(&config_lines).unwrap();
         assert_eq!(&config.restart_units[..], &["foo", "bar"]);
+    }
+
+    #[test]
+    pub fn config_with_2_space_separated_restart_units_is_parsed() {
+        let config_lines = [
+            "Origin=https://images.example.com/app-foo",
+            "PublicKey=8+r5DKNN/cwI+h0oHxMtgdyND3S/5xDLHQu0hFUmq+g=",
+            "Version=1.*",
+            "Destination=/var/lib/images/app-foo",
+            "Restart=foo bar",
+        ];
+        let config = Config::parse(&config_lines).unwrap();
+        assert_eq!(&config.restart_units[..], &["foo", "bar"]);
+    }
+
+    #[test]
+    pub fn config_with_3_mixed_separated_restart_units_is_parsed() {
+        let config_lines = [
+            "Origin=https://images.example.com/app-foo",
+            "PublicKey=8+r5DKNN/cwI+h0oHxMtgdyND3S/5xDLHQu0hFUmq+g=",
+            "Version=1.*",
+            "Destination=/var/lib/images/app-foo",
+            "Restart=foo bar",
+            "Restart=baz",
+        ];
+        let config = Config::parse(&config_lines).unwrap();
+        assert_eq!(&config.restart_units[..], &["foo", "bar", "baz"]);
     }
 
     #[test]

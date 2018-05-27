@@ -6,10 +6,10 @@ they indicate near-term versus long-term goals.
 ## Done
 
  * Rename `RestartUnit=` to `Restart=`.
+ * Allow space-separated units in `Restart=`.
 
 ## 0.1
 
- * Allow space-separated units in `Restart=`.
  * Implement `tako fetch --init`.
  * Ensure it runs on CoreOS.
  * Check for spaces in versions.
