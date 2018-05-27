@@ -3,9 +3,12 @@
 The version numbers in this list should not be interpreted literally. Rather,
 they indicate near-term versus long-term goals.
 
-## 0.1
+## Done
 
  * Rename `RestartUnit=` to `Restart=`.
+
+## 0.1
+
  * Allow space-separated units in `Restart=`.
  * Implement `tako fetch --init`.
  * Ensure it runs on CoreOS.

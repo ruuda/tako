@@ -97,13 +97,13 @@ impl Config {
                     "Destination" => {
                         destination = Some(PathBuf::from(value));
                     }
-                    "RestartUnit" => {
+                    "Restart" => {
                         restart_units.push(String::from(value));
                     }
                     _ => {
                         let msg = "Unknown key. Expected one of \
                             'Origin', 'PublicKey', 'Version', 'Destination', \
-                            or 'RestartUnit'.";
+                            or 'Restart'.";
                         return Err(Error::InvalidConfig(lineno, msg))
                     }
                 }
@@ -176,7 +176,7 @@ mod test {
             "PublicKey=8+r5DKNN/cwI+h0oHxMtgdyND3S/5xDLHQu0hFUmq+g=",
             "Version=*",
             "Destination=/var/lib/images/app-foo",
-            "RestartUnit=foo",
+            "Restart=foo",
         ];
         let config = Config::parse(&config_lines).unwrap();
         assert_eq!(&config.restart_units[..], &["foo"]);
@@ -189,8 +189,8 @@ mod test {
             "PublicKey=8+r5DKNN/cwI+h0oHxMtgdyND3S/5xDLHQu0hFUmq+g=",
             "Version=1.*",
             "Destination=/var/lib/images/app-foo",
-            "RestartUnit=foo",
-            "RestartUnit=bar",
+            "Restart=foo",
+            "Restart=bar",
         ];
         let config = Config::parse(&config_lines).unwrap();
         assert_eq!(&config.restart_units[..], &["foo", "bar"]);

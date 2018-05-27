@@ -11,7 +11,7 @@ per image. Config files follow the same syntax as systemd unit files.
     Version=1.*
 
     # Restart app-foo after a new image has been fetched.
-    RestartUnit=app-foo.service
+    Restart=app-foo.service
 
 ## Options
 
