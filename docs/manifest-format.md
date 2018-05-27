@@ -55,5 +55,5 @@ a GPG-signed `SHASUMS` file.
   accidentally releasing different images under the same version number. It also
   ensures that clients which did download the image can still identify it, so
   they do not end up running a mysterous image without record of existence.
-* The size of each image is included, and signed, so malicious mirrors cannot
-  cause clients to download large files that would fill up their disks.
+* The size of each image is included (and therefore signed) so malicious mirrors
+  cannot cause clients to download large files that would fill up their disks.
