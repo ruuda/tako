@@ -74,6 +74,11 @@ def test(description):
     else:
         print('ok {} {}'.format(test_number, description))
 
+    # When output of this script is piped into a TAP runner such as 'prove',
+    # Python would buffer stdout, which means we don't see test results as they
+    # happen, only later when the buffer is full. Flush for responsiveness.
+    sys.stdout.flush()
+
 
 def run_server():
     port = 8117
