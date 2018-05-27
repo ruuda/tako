@@ -8,7 +8,6 @@
 //! Interface to libcurl. Not as bloated as the curl and curl-sys crates.
 
 use std::ffi::{CStr, CString};
-use std::io;
 use std::mem;
 use std::os::raw;
 use std::slice;
@@ -65,8 +64,10 @@ impl Handle {
         }
     }
 
-    pub fn download_io<'a, F>(&'a mut self, uri: &str, mut on_data: F) -> Result<()>
-    where F: 'a + FnMut(&[u8]) -> io::Result<()> {
+    /// Download a file with a data handler that can produce an error.
+    pub fn download_err<'a, F>(&'a mut self, uri: &str, mut on_data: F) -> Result<()>
+    where F: 'a + FnMut(&[u8]) -> Result<()>,
+    {
         let mut result = Ok(());
         {
             let result_ref = &mut result;

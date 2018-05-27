@@ -177,7 +177,7 @@ with test('Aborts a fetch if the remote serves a larger file than expected.'):
     config = 'tests/config/eve-1.0.0.tako'
     # TODO: Exit code should be 1 due to failure, not 101 for panic.
     out = exec('target/debug/tako', 'fetch', config, expect=101)
-    assert 'size exceeds size specified in manifest' in out
+    assert 'InvalidSize' in out
     assert len(os.listdir('tests/scratch/eve/store')) == 0
     assert not os.path.exists('tests/scratch/eve/latest')
 
@@ -189,6 +189,7 @@ with test('Aborts if the remote serves a file smaller than expected.'):
     config = 'tests/config/eve-1.1.0.tako'
     # TODO: Exit code should be 1 due to failure, not 101 for panic.
     exec('target/debug/tako', 'fetch', config, expect=101)
+    assert 'InvalidSize' in out
     assert len(os.listdir('tests/scratch/eve/store')) == 0
     assert not os.path.exists('tests/scratch/eve/latest')
 

@@ -40,6 +40,9 @@ pub enum Error {
     /// Digest verification of a (possibly newly) stored image failed.
     InvalidDigest,
 
+    /// The downloaded file had a different size than specified in the manifest.
+    InvalidSize,
+
     /// An operational error occurred.
     OperationError(&'static str),
 
