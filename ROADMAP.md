@@ -10,6 +10,10 @@ they indicate near-term versus long-term goals.
 
 ## 0.1
 
+ * Replace [`ring`][ring] with [`ed25519-dalek`][dalek] and [`sha2`][sha2].
+   Ring’s versioning and stability policy is problematic; Ring cannot securely
+   be used with Rust 1.24 which we aim to support. RustCrypto at least aims to
+   support Rust 1.21 at the time of writing.
  * Implement `tako fetch --init`.
  * Ensure it runs on CoreOS.
  * Check for spaces in versions.
@@ -36,3 +40,7 @@ they indicate near-term versus long-term goals.
 
  * Reduce binary size.
  * Investigate using etag headers to reduce bandwidth.
+
+[ring]:  https://github.com/briansmith/ring
+[dalek]: https://github.com/dalek-cryptography/ed25519-dalek
+[sha2]:  https://github.com/RustCrypto/hashes
