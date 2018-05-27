@@ -64,7 +64,7 @@ def test(description):
     try:
         yield
     except:
-        print('not ok {} {}'.format(test_number, description))
+        print('not ok {:2} {}'.format(test_number, description))
         exc_type, error, tb = sys.exc_info()
         _filename, line, _function, statement = traceback.extract_tb(tb)[-1]
         print('# line {}: {}'.format(line, statement))
@@ -72,7 +72,7 @@ def test(description):
             error.print_details()
         test_failed = True
     else:
-        print('ok {} {}'.format(test_number, description))
+        print('ok {:2} {}'.format(test_number, description))
 
     # When output of this script is piped into a TAP runner such as 'prove',
     # Python would buffer stdout, which means we don't see test results as they
