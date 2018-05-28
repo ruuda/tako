@@ -20,7 +20,7 @@ automatic updates.
 ## Documentation
 
  * [Overview](docs/index.md)
- * [Dowloading Images](docs/downloading-images.md)
+ * [Downloading Images](docs/downloading-images.md)
  * [Distributing Images](docs/distributing-images.md)
  * [Configuration](docs/configuration.md)
  * [Versions](docs/versions.md)
