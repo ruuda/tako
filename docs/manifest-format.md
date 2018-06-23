@@ -41,7 +41,7 @@ a GPG-signed `SHASUMS` file.
   images before uploading a new manifest.
 * The signature is an Ed25519 signature rather than a GPG signature, because GPG
   involves a stateful trust store that is difficult to provision in an automated
-  way. In practice people use GPG is only for signature verification. For
+  way. In practice people use GPG only for signature verification. For
   authentication, rather than relying on GPG’s web of trust, people announce
   the fingerprint of their key in a trusted location (Twitter, Github, an https-
   protected website). Ed25519 public keys are small enough that the full public
