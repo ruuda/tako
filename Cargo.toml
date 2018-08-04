@@ -9,9 +9,13 @@ authors = [
 ]
 
 [dependencies]
-base64        = "0.9.0"
-filebuffer    = "0.4.0"
-sodiumoxide   = "0.0.16"
+base64      = "0.9.0"
+filebuffer  = "0.4.0"
+
+# We use "rust_sodium" rather than "sodiumoxide" because the former can link
+# libsodium statically, and CoreOS does not ship libsodium at the moment of
+# writing, so for single-binary deployment we would need to link it statically.
+rust_sodium = "0.9"
 
 [profile.release]
 # For the release build, optimize for size.

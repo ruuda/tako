@@ -13,7 +13,7 @@ use std::io::{BufRead, BufWriter, Write};
 use std::os::unix;
 use std::path::Path;
 
-use sodiumoxide::crypto::hash::sha256;
+use rust_sodium::crypto::hash::sha256;
 
 use config::Config;
 use curl;
