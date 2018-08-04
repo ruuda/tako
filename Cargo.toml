@@ -9,12 +9,17 @@ authors = [
 ]
 
 [dependencies]
-base64     = "0.9.0"
+base64        = "0.9.0"
 # Pin Ring until we can replace it.
 # See also https://github.com/ruuda/tako/issues/19.
-ring       = "=0.13.0-alpha"
-untrusted  = "0.6.1"
-filebuffer = "0.4.0"
+ring          = "=0.13.0-alpha"
+untrusted     = "0.6.1"
+filebuffer    = "0.4.0"
+
+[dependencies.ed25519-dalek]
+version = "0.8.0"
+default-features = false
+features = ["u32_backend"]
 
 [profile.release]
 # For the release build, optimize for size.
