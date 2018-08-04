@@ -138,6 +138,7 @@ impl<'a> Drop for FileGuard<'a> {
 mod test {
     use sodiumoxide::crypto::sign::ed25519;
 
+    use error::Error;
     use super::{format_key_pair, parse_key_pair};
 
     #[test]
@@ -148,6 +149,22 @@ mod test {
             let (pk_out, sk_out) = parse_key_pair(&formatted).unwrap();
             assert_eq!(pk_in, pk_out);
             assert_eq!(sk_in, sk_out);
+        }
+    }
+
+    #[test]
+    fn parse_key_pair_requires_prefix() {
+        match parse_key_pair("R1/aB01J60F3fPk7") {
+            Err(Error::InvalidSecretKeyPrefix) => { /* Expected */ }
+            _ => panic!("Should have returned invalid prefix error."),
+        }
+    }
+
+    #[test]
+    fn parse_key_pair_rejects_input_that_is_too_short() {
+        match parse_key_pair("SECRET+R1/aB01J60F3fPk7") {
+            Err(Error::InvalidSecretKeyData) => { /* Expected */ }
+            _ => panic!("Should have returned invalid secret key data error."),
         }
     }
 }
