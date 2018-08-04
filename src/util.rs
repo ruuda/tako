@@ -133,3 +133,21 @@ impl<'a> Drop for FileGuard<'a> {
         }
     }
 }
+
+#[cfg(test)]
+mod test {
+    use sodiumoxide::crypto::sign::ed25519;
+
+    use super::{format_key_pair, parse_key_pair};
+
+    #[test]
+    fn format_key_pair_then_parse_key_pair_is_identity() {
+        for _ in 0..1024 {
+            let (pk_in, sk_in) = ed25519::gen_keypair();
+            let formatted = format_key_pair(&pk_in, &sk_in);
+            let (pk_out, sk_out) = parse_key_pair(&formatted).unwrap();
+            assert_eq!(pk_in, pk_out);
+            assert_eq!(sk_in, sk_out);
+        }
+    }
+}
