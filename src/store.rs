@@ -32,27 +32,27 @@ pub fn store(store: Store) -> Result<()> {
             let mut f = fs::File::open(p)?;
             f.read_to_string(&mut s)?;
             // The base64-encoded seed of the keypair is 43 bytes long, plus 8
-            // bytes of "PRIVATE:" to distinguish the seed from the public key.
+            // bytes of "SECRET:" to distinguish the seed from the public key.
             // There might be a trailing newline at the end of the file that we
             // discard here. There might also be junk, then we find out later
             // when parsing the base64.
-            s.truncate(43 + 8);
+            s.truncate(43 + 7);
             s
         }
         (None, None) => unreachable!("Should have been validated elsewhere."),
     };
 
     // The keypair seed is the same size as the public key, so to distinguish,
-    // we prefix the (secret) seed with "PRIVATE:", and if it's not there,
-    // reject the seed.
+    // we prefix the (secret) seed with "SECRET:", and if it's not there, reject
+    // the seed.
     let err = Err(Error::InvalidSecretKeyData);
-    match &secret_keypair_seed_base64[..8] {
-        "PRIVATE:" => { /* Ok, as expected. */ }
+    match &secret_keypair_seed_base64[..7] {
+        "SECRET:" => { /* Ok, as expected. */ }
         _ => return err,
     }
 
     let err = Err(Error::InvalidSecretKeyData);
-    let secret_keypair_seed_bytes = base64::decode(&secret_keypair_seed_base64[8..]).or(err)?;
+    let secret_keypair_seed_bytes = base64::decode(&secret_keypair_seed_base64[7..]).or(err)?;
 
     let err = Error::InvalidSecretKeyData;
     let secret_keypair_seed = ed25519::Seed::from_slice(&secret_keypair_seed_bytes).ok_or(err)?;
