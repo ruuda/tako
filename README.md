@@ -52,6 +52,19 @@ Non-goals:
     cargo build --release
     target/release/tako --help
 
+If you want to build with statically linked libsodium, build a static libsodium
+from source:
+
+    autogen.sh
+    ./configure --disable-shared
+    make
+
+Then build Tako, passing the path to the static libsodium:
+
+    export SODIUM_STATIC=true
+    export SODIUM_LIB_DIR=/path/to/libsodium/checkout/src/libsodium/.libs
+    export SODIUM_INC_DIR=/path/to/libsodium/checkout/src/libsodium/include
+
 ## Future work
 
  * GC'ing the local store.
