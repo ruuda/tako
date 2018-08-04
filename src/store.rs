@@ -13,17 +13,17 @@ use std::path::PathBuf;
 
 use base64;
 use ring::signature::Ed25519KeyPair;
+use sodiumoxide::crypto::sign::ed25519;
 use untrusted::Input;
 
 use cli::Store;
-use config::PublicKey;
 use error::{Error, Result};
 use manifest;
 use manifest::{Entry, Manifest};
 use util;
 
 pub fn store(store: Store) -> Result<()> {
-    let secret_key_base64 = match (store.secret_key, store.secret_key_path) {
+    let secret_keypair_seed_base64 = match (store.secret_key, store.secret_key_path) {
         (Some(k), _) => k,
         (None, Some(p)) => {
             let mut s = String::new();
@@ -31,22 +31,33 @@ pub fn store(store: Store) -> Result<()> {
             // already reading into a (string) buffer.
             let mut f = fs::File::open(p)?;
             f.read_to_string(&mut s)?;
-            // The base64-encoded secret key is 116 bytes long. There might be
-            // a trailing newline at the end of the file that we discard here.
-            // There might also be junk, then we find out later when parsing the
-            // base64.
-            s.truncate(116);
+            // The base64-encoded seed of the keypair is 43 bytes long, plus 8
+            // bytes of "PRIVATE:" to distinguish the seed from the public key.
+            // There might be a trailing newline at the end of the file that we
+            // discard here. There might also be junk, then we find out later
+            // when parsing the base64.
+            s.truncate(43 + 8);
             s
         }
         (None, None) => unreachable!("Should have been validated elsewhere."),
     };
 
+    // The keypair seed is the same size as the public key, so to distinguish,
+    // we prefix the (secret) seed with "PRIVATE:", and if it's not there,
+    // reject the seed.
     let err = Err(Error::InvalidSecretKeyData);
-    let secret_key_bytes = base64::decode(&secret_key_base64).or(err)?;
+    match &secret_keypair_seed_base64[..8] {
+        "PRIVATE:" => { /* Ok, as expected. */ }
+        _ => return err,
+    }
 
     let err = Err(Error::InvalidSecretKeyData);
-    let key_pair = Ed25519KeyPair::from_pkcs8(Input::from(&secret_key_bytes)).or(err)?;
-    let public_key = PublicKey::from_pair(&key_pair);
+    let secret_keypair_seed_bytes = base64::decode(&secret_keypair_seed_base64[8..]).or(err)?;
+
+    let err = Error::InvalidSecretKeyData;
+    let secret_keypair_seed = ed25519::Seed::from_slice(&secret_keypair_seed_bytes).ok_or(err)?;
+
+    let (public_key, secret_key) = ed25519::keypair_from_seed(&secret_keypair_seed);
 
     let mut manifest = match Manifest::load_local(&store.output_path, &public_key)? {
         Some(m) => m,
@@ -96,7 +107,7 @@ pub fn store(store: Store) -> Result<()> {
 
     // And finally store the new manifest. Write to a temporary file, then swap
     // it into place.
-    let manifest_string = manifest.serialize(&key_pair);
+    let manifest_string = manifest.serialize(&secret_key);
     manifest::store_local(&store.output_path, manifest_string.as_bytes())?;
 
     Ok(())

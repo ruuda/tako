@@ -18,9 +18,9 @@ use base64;
 use ring::signature::Ed25519KeyPair;
 use ring::signature;
 use sodiumoxide::crypto::hash::sha256;
+use sodiumoxide::crypto::sign::ed25519;
 use untrusted::Input;
 
-use config::PublicKey;
 use error::{Error, Result};
 use util;
 use version::Version;
@@ -162,7 +162,7 @@ impl Manifest {
         }
     }
 
-    pub fn parse(bytes: &[u8], public_key: &PublicKey) -> Result<Manifest> {
+    pub fn parse(bytes: &[u8], public_key: &ed25519::PublicKey) -> Result<Manifest> {
         let mut lines = bytes.split(|b| *b == b'\n');
         let mut entries = Vec::new();
 
@@ -207,11 +207,10 @@ impl Manifest {
 
         // The signature and newline are 89 bytes. Everything before that is
         // included in the signature.
-        let message = Input::from(&bytes[..bytes.len() - 89]);
-        let pub_key = public_key.as_input();
-        let sig = Input::from(&signature_bytes);
+        let message = &bytes[..bytes.len() - 89];
+        let signature = ed25519::Signature(signature_bytes);
 
-        if signature::verify(&signature::ED25519, pub_key, message, sig).is_err() {
+        if !ed25519::verify_detached(&signature, message, public_key) {
             return Err(Error::InvalidSignature)
         }
 
@@ -244,7 +243,7 @@ impl Manifest {
     }
 
     /// Print the manifest as a string and sign it, the inverse of `parse`.
-    pub fn serialize(&self, key_pair: &Ed25519KeyPair) -> String {
+    pub fn serialize(&self, secret_key: &ed25519::SecretKey) -> String {
         use std::fmt::Write;
 
         // Premature optimization: estimate the output size, so we have to do
@@ -266,7 +265,7 @@ impl Manifest {
 
         out.push('\n');
 
-        let signature = key_pair.sign(out.as_bytes());
+        let signature = ed25519::sign_detached(out.as_bytes(), secret_key);
         let signature_b64 = base64::encode(signature.as_ref());
 
         out.push_str(&signature_b64);
@@ -279,7 +278,7 @@ impl Manifest {
     ///
     /// If the manifest exists, it is parsed and returned. If it does not exist,
     /// None is returned, rather than an Err.
-    pub fn load_local(dir: &Path, public_key: &PublicKey) -> Result<Option<Manifest>> {
+    pub fn load_local(dir: &Path, public_key: &ed25519::PublicKey) -> Result<Option<Manifest>> {
         // Open the current manifest. If it does not exist that is not an error.
         let mut path = PathBuf::from(dir);
         path.push("manifest");
@@ -356,28 +355,33 @@ mod test {
     use ring::signature::Ed25519KeyPair;
     use ring::test::rand::FixedSliceRandom;
     use sodiumoxide::crypto::hash::sha256;
+    use sodiumoxide::crypto::sign::ed25519;
     use untrusted::Input;
 
-    use config::PublicKey;
     use error::Error;
     use super::{Entry, Manifest, parse_entry};
     use version::Version;
 
-    fn get_test_key_pair() -> Ed25519KeyPair {
+    fn get_test_key_pair() -> (ed25519::PublicKey, ed25519::SecretKey) {
         // Produce the keypair from the same 32 bytes each time in the tests,
         // so they are deterministic. From this seed, the following key is
         // generated:
+        // TODO: Patch these.
         // Secret key: MFMCAQEwBQYDK2VwBCIEIHRlc3Qta2V5LXZlcnktc2VjdXJpdHktc3Vja
         // C1zYWZloSMDIQCXQPbwnZ+Ihe9Y9t5k/vCRqr50HnkaXbKyKCX2ZAfb2Q==
         // Public key: l0D28J2fiIXvWPbeZP7wkaq+dB55Gl2ysigl9mQH29k=
-        let seed = b"test-key-very-security-such-safe";
-        let rng = FixedSliceRandom { bytes: &seed[..] };
-        let pkcs8_bytes = Ed25519KeyPair::generate_pkcs8(&rng).unwrap();
-        Ed25519KeyPair::from_pkcs8(Input::from(&pkcs8_bytes)).unwrap()
+        let seed = ed25519::Seed(*b"test-key-very-security-such-safe");
+        ed25519::keypair_from_seed(&seed)
     }
 
-    fn get_test_public_key() -> PublicKey {
-        PublicKey::from_pair(&get_test_key_pair())
+    fn get_test_public_key() -> ed25519::PublicKey {
+       let (pk, _sk) = get_test_key_pair();
+       pk
+    }
+
+    fn get_test_secret_key() -> ed25519::SecretKey {
+       let (_pk, sk) = get_test_key_pair();
+       sk
     }
 
     /// A sequence of 32 bytes that I don't want to repeat everywhere.
@@ -458,7 +462,7 @@ mod test {
         let manifest = Manifest {
             entries: vec![entry],
         };
-        let serialized = manifest.serialize(&get_test_key_pair());
+        let serialized = manifest.serialize(&get_test_secret_key());
         let expected = "Tako Manifest 1\n\n\
             1.0.0 17 9641a49d02e90cbb6213f202fb632da70cdc59073d42283cfcdc1d786454f17f\n\n\
             WezSd49tB4ng/nbRZWWfLak+Sn1pUcOoA6X5pSg2MMOGRR4Lz0XYznFKKVj/E8vCCdmt3pQO4xTFyKlMUq1SCQ==\n";
@@ -471,7 +475,7 @@ mod test {
         let manifest = Manifest {
             entries: vec![entry],
         };
-        let serialized = manifest.serialize(&get_test_key_pair());
+        let serialized = manifest.serialize(&get_test_secret_key());
         let deserialized = Manifest::parse(
             serialized.as_bytes(),
             &get_test_public_key()

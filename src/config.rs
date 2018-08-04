@@ -12,29 +12,15 @@ use std::path::PathBuf;
 use base64;
 use ring::signature::Ed25519KeyPair;
 use untrusted::Input;
+use sodiumoxide::crypto::sign::ed25519;
 
 use error::{Error, Result};
 use version::Version;
 
 #[derive(Debug)]
-pub struct PublicKey([u8; 32]);
-
-impl PublicKey {
-    pub fn as_input(&self) -> Input {
-        Input::from(&self.0)
-    }
-
-    pub fn from_pair(pair: &Ed25519KeyPair) -> PublicKey {
-        let mut bytes = [0_u8; 32];
-        bytes.copy_from_slice(pair.public_key_bytes());
-        PublicKey(bytes)
-    }
-}
-
-#[derive(Debug)]
 pub struct Config {
     pub origin: String,
-    pub public_key: PublicKey,
+    pub public_key: ed25519::PublicKey,
     pub version: Version,
     pub destination: PathBuf,
     pub restart_units: Vec<String>,
@@ -124,7 +110,7 @@ impl Config {
                 )),
             },
             public_key: match public_key {
-                Some(k) => PublicKey(k),
+                Some(k) => ed25519::PublicKey(k),
                 None => return Err(Error::IncompleteConfig(
                     "Public key not set. Expected 'PublicKey='-line."
                 )),
