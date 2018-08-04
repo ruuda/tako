@@ -11,11 +11,8 @@ use std::fs;
 use std::io::Read;
 use std::path::PathBuf;
 
-use base64;
-use sodiumoxide::crypto::sign::ed25519;
-
 use cli::Store;
-use error::{Error, Result};
+use error::Result;
 use manifest;
 use manifest::{Entry, Manifest};
 use util;
