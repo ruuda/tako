@@ -15,21 +15,21 @@ use std::path::{Path, PathBuf};
 use std::str;
 
 use base64;
-use ring::signature;
 use ring::signature::Ed25519KeyPair;
+use ring::signature;
+use sodiumoxide::crypto::hash::sha256;
 use untrusted::Input;
 
 use config::PublicKey;
 use error::{Error, Result};
 use util;
-use util::Sha256;
 use version::Version;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Entry {
     pub version: Version,
     pub len: u64,
-    pub digest: Sha256,
+    pub digest: sha256::Digest,
 }
 
 // Implement Ord manually for Entry; the generated one would also compare
@@ -113,8 +113,8 @@ fn parse_entry(line: &[u8]) -> Result<Entry> {
         return Err(Error::InvalidManifest(msg))
     }
 
-    let mut sha256 = [0_u8; 32];
-    for (dst, hex) in sha256.iter_mut().zip(sha256_hex.chunks(2)) {
+    let mut sha256_bytes = [0_u8; 32];
+    for (dst, hex) in sha256_bytes.iter_mut().zip(sha256_hex.chunks(2)) {
         // There is also u8::form_str_radix, but then we would need to do UTF-8
         // validation first, and all the error handling is just as messy as just
         // doing it manually. As an additional benefit, we are stricter to only
@@ -131,7 +131,7 @@ fn parse_entry(line: &[u8]) -> Result<Entry> {
     let entry = Entry {
         version: Version::new(version),
         len: len,
-        digest: Sha256(sha256),
+        digest: sha256::Digest(sha256_bytes),
     };
 
     Ok(entry)
@@ -355,11 +355,12 @@ pub fn store_local(path: &Path, bytes: &[u8]) -> Result<()> {
 mod test {
     use ring::signature::Ed25519KeyPair;
     use ring::test::rand::FixedSliceRandom;
+    use sodiumoxide::crypto::hash::sha256;
     use untrusted::Input;
 
     use config::PublicKey;
     use error::Error;
-    use super::{Entry, Manifest, Sha256, parse_entry};
+    use super::{Entry, Manifest, parse_entry};
     use version::Version;
 
     fn get_test_key_pair() -> Ed25519KeyPair {
@@ -380,13 +381,13 @@ mod test {
     }
 
     /// A sequence of 32 bytes that I don't want to repeat everywhere.
-    fn get_test_sha256() -> Sha256 {
+    fn get_test_sha256() -> sha256::Digest {
         const TEST_SHA256: [u8; 32] = [
             0x96, 0x41, 0xa4, 0x9d, 0x02, 0xe9, 0x0c, 0xbb, 0x62, 0x13, 0xf2,
             0x02, 0xfb, 0x63, 0x2d, 0xa7, 0x0c, 0xdc, 0x59, 0x07, 0x3d, 0x42,
             0x28, 0x3c, 0xfc, 0xdc, 0x1d, 0x78, 0x64, 0x54, 0xf1, 0x7f
         ];
-        Sha256(TEST_SHA256)
+        sha256::Digest(TEST_SHA256)
     }
 
     fn get_test_entry(version: &'static str) -> Entry {

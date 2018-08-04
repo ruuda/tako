@@ -13,7 +13,7 @@ use std::io::{BufRead, BufWriter, Write};
 use std::os::unix;
 use std::path::Path;
 
-use ring::digest;
+use sodiumoxide::crypto::hash::sha256;
 
 use config::Config;
 use curl;
@@ -21,7 +21,6 @@ use error::{Error, Result};
 use manifest;
 use manifest::Manifest;
 use util;
-use util::Sha256;
 
 fn load_config(config_fname: &str) -> Result<Config> {
     let f = fs::File::open(config_fname)?;
@@ -73,7 +72,7 @@ fn fetch_image(
     uri: &str,
     target_fname: &Path,
     len: u64,
-    digest: &Sha256,
+    digest: &sha256::Digest,
     curl_handle: &mut curl::Handle
 ) -> Result<()> {
     // Download to store/<hexdigest>.new. Then later rename the file to its
@@ -86,7 +85,7 @@ fn fetch_image(
     // In case of error, delete the temp file.
     let guard = util::FileGuard::new(&tmp_fname);
 
-    let mut ctx = digest::Context::new(&digest::SHA256);
+    let mut ctx = sha256::State::new();
     {
         let ctx_ref = &mut ctx;
         let mut f = BufWriter::new(fs::File::create(&tmp_fname)?);
@@ -106,11 +105,9 @@ fn fetch_image(
             return Err(Error::InvalidSize)
         }
     }
-    let actual_digest = ctx.finish();
+    let actual_digest = ctx.finalize();
 
-    // The comparison is not constant time, but that is not an issue here; a
-    // digest cannot be bruteforced byte by byte until it matches.
-    let is_digest_valid = actual_digest.as_ref() == digest.as_ref();
+    let is_digest_valid = actual_digest == *digest;
 
     if !is_digest_valid {
         return Err(Error::InvalidDigest)
