@@ -13,8 +13,8 @@ use std::path::Path;
 
 use base64;
 use filebuffer::FileBuffer;
-use rust_sodium::crypto::hash::sha256;
-use rust_sodium::crypto::sign::ed25519;
+use sodiumoxide::crypto::hash::sha256;
+use sodiumoxide::crypto::sign::ed25519;
 
 use error::{Error, Result};
 

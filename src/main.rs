@@ -19,12 +19,12 @@
 
 extern crate base64;
 extern crate filebuffer;
-extern crate rust_sodium;
+extern crate sodiumoxide;
 
 use std::process;
 use std::env;
 
-use rust_sodium::crypto::sign::ed25519;
+use sodiumoxide::crypto::sign::ed25519;
 
 mod cli;
 mod config;

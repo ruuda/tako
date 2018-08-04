@@ -15,8 +15,8 @@ use std::path::{Path, PathBuf};
 use std::str;
 
 use base64;
-use rust_sodium::crypto::hash::sha256;
-use rust_sodium::crypto::sign::ed25519;
+use sodiumoxide::crypto::hash::sha256;
+use sodiumoxide::crypto::sign::ed25519;
 
 use error::{Error, Result};
 use util;
@@ -349,8 +349,8 @@ pub fn store_local(path: &Path, bytes: &[u8]) -> Result<()> {
 
 #[cfg(test)]
 mod test {
-    use rust_sodium::crypto::hash::sha256;
-    use rust_sodium::crypto::sign::ed25519;
+    use sodiumoxide::crypto::hash::sha256;
+    use sodiumoxide::crypto::sign::ed25519;
 
     use error::Error;
     use super::{Entry, Manifest, parse_entry};
