@@ -12,9 +12,7 @@ use std::io::Read;
 use std::path::PathBuf;
 
 use base64;
-use ring::signature::Ed25519KeyPair;
 use sodiumoxide::crypto::sign::ed25519;
-use untrusted::Input;
 
 use cli::Store;
 use error::{Error, Result};

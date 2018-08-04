@@ -10,10 +10,6 @@ authors = [
 
 [dependencies]
 base64        = "0.9.0"
-# Pin Ring until we can replace it.
-# See also https://github.com/ruuda/tako/issues/19.
-ring          = "=0.13.0-alpha"
-untrusted     = "0.6.1"
 filebuffer    = "0.4.0"
 sodiumoxide   = "0.0.16"
 

@@ -10,8 +10,6 @@
 use std::path::PathBuf;
 
 use base64;
-use ring::signature::Ed25519KeyPair;
-use untrusted::Input;
 use sodiumoxide::crypto::sign::ed25519;
 
 use error::{Error, Result};

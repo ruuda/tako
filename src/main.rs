@@ -19,9 +19,7 @@
 
 extern crate base64;
 extern crate filebuffer;
-extern crate ring;
 extern crate sodiumoxide;
-extern crate untrusted;
 
 use std::process;
 use std::env;
