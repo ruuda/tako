@@ -10,6 +10,11 @@ rust:
   - beta
   - nightly
 
+addons:
+  apt:
+    packages:
+      - libsodium-dev
+
 before_install:
   - pyenv global system 3.6
 
