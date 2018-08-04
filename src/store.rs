@@ -23,7 +23,7 @@ use manifest::{Entry, Manifest};
 use util;
 
 pub fn store(store: Store) -> Result<()> {
-    let secret_keypair_seed_base64 = match (store.secret_key, store.secret_key_path) {
+    let key_pair_base64 = match (store.secret_key, store.secret_key_path) {
         (Some(k), _) => k,
         (None, Some(p)) => {
             let mut s = String::new();
@@ -31,33 +31,18 @@ pub fn store(store: Store) -> Result<()> {
             // already reading into a (string) buffer.
             let mut f = fs::File::open(p)?;
             f.read_to_string(&mut s)?;
-            // The base64-encoded seed of the keypair is 43 bytes long, plus 8
-            // bytes of "SECRET:" to distinguish the seed from the public key.
+            // The base64-encoded seed of the keypair is 87 bytes long, plus 7
+            // bytes of "SECRET+" to distinguish the seed from the public key.
             // There might be a trailing newline at the end of the file that we
             // discard here. There might also be junk, then we find out later
             // when parsing the base64.
-            s.truncate(43 + 7);
+            s.truncate(128 + 7);
             s
         }
         (None, None) => unreachable!("Should have been validated elsewhere."),
     };
 
-    // The keypair seed is the same size as the public key, so to distinguish,
-    // we prefix the (secret) seed with "SECRET:", and if it's not there, reject
-    // the seed.
-    let err = Err(Error::InvalidSecretKeyData);
-    match &secret_keypair_seed_base64[..7] {
-        "SECRET:" => { /* Ok, as expected. */ }
-        _ => return err,
-    }
-
-    let err = Err(Error::InvalidSecretKeyData);
-    let secret_keypair_seed_bytes = base64::decode(&secret_keypair_seed_base64[7..]).or(err)?;
-
-    let err = Error::InvalidSecretKeyData;
-    let secret_keypair_seed = ed25519::Seed::from_slice(&secret_keypair_seed_bytes).ok_or(err)?;
-
-    let (public_key, secret_key) = ed25519::keypair_from_seed(&secret_keypair_seed);
+    let (public_key, secret_key) = util::parse_key_pair(&key_pair_base64)?;
 
     let mut manifest = match Manifest::load_local(&store.output_path, &public_key)? {
         Some(m) => m,

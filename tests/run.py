@@ -100,8 +100,9 @@ httpd_thread = threading.Thread(target=run_server, daemon=True)
 httpd_thread.start()
 
 # Secret key of the test key pair that is used in all the tests.
-secret_key = ('MFMCAQEwBQYDK2VwBCIEIHRlc3Qta2V5LXZlcnktc2VjdXJpdHktc3VjaC'
-              '1zYWZloSMDIQCXQPbwnZ+Ihe9Y9t5k/vCRqr50HnkaXbKyKCX2ZAfb2Q==')
+secret_key = ('SECRET+dGVzdC1rZXktdmVyeS1zZWN1cml0eS1zdWNoLX'
+              'NhZmWXQPbwnZ+Ihe9Y9t5k/vCRqr50HnkaXbKyKCX2ZAf'
+              'b2ZdA9vCdn4iF71j23mT+8JGqvnQeeRpdsrIoJfZkB9vZ')
 
 # Clean up results from a previous test run, if there are any.
 shutil.rmtree('tests/scratch', ignore_errors=True)

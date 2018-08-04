@@ -26,9 +26,7 @@ extern crate untrusted;
 use std::process;
 use std::env;
 
-use ring::rand::SystemRandom;
-use ring::signature::Ed25519KeyPair;
-use untrusted::Input;
+use sodiumoxide::crypto::sign::ed25519;
 
 mod cli;
 mod config;
@@ -67,18 +65,14 @@ fn run_store(store: cli::Store) {
     store::store(store).unwrap();
 }
 
-fn run_gen_key() -> Result<(), ring::error::Unspecified> {
-    // Generate a key pair in PKCS#8 (v2) format.
-    let rng = SystemRandom::new();
-    let pkcs8_bytes = Ed25519KeyPair::generate_pkcs8(&rng)?;
-
-    let key_pair = Ed25519KeyPair::from_pkcs8(Input::from(&pkcs8_bytes))?;
+fn run_gen_key() {
+    let (public_key, secret_key) = ed25519::gen_keypair();
 
     // There is no particular reason to encode these as base64, apart from that
     // it is easy to deal with in config files (for the public key), and it can
     // be safely printed to stdout and copied from there.
-    let secret_key_b64 = base64::encode(&pkcs8_bytes[..]);
-    let public_key_b64 = base64::encode(key_pair.public_key_bytes());
+    let pair_b64 = util::format_key_pair(&public_key, &secret_key);
+    let public_key_b64 = base64::encode(public_key.as_ref());
 
     // Print the private key to stdout, rather than writing it to a file. This
     // means that at least the sensitive data is not written to disk. (It is
@@ -88,10 +82,11 @@ fn run_gen_key() -> Result<(), ring::error::Unspecified> {
     // like Vault. To sign the manifest, the secret can be pulled from Vault and
     // brought into the environment; it never needs to be written to disk except
     // encrypted.
-    println!("Secret key (save to an encrypted secret store):\n{}", secret_key_b64);
+    println!(
+        "Key pair including secret key (save to an encrypted secret store):\n{}",
+        pair_b64
+    );
     println!("\nPublic key:\n{}", public_key_b64);
-
-    Ok(())
 }
 
 fn main() {
@@ -101,8 +96,7 @@ fn main() {
         Ok(Cmd::Fetch(fnames)) => fnames.iter().for_each(run_fetch),
         Ok(Cmd::Init(fnames)) => fnames.iter().for_each(run_init),
         Ok(Cmd::Store(store)) => run_store(store),
-        // TODO: Implement a better error handler.
-        Ok(Cmd::GenKey) => run_gen_key().unwrap(),
+        Ok(Cmd::GenKey) => run_gen_key(),
         Ok(Cmd::Help(cmd)) => cli::print_usage(cmd),
         Ok(Cmd::Version) => cli::print_version(),
         Err(msg) => {

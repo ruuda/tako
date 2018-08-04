@@ -366,22 +366,22 @@ mod test {
         // Produce the keypair from the same 32 bytes each time in the tests,
         // so they are deterministic. From this seed, the following key is
         // generated:
-        // TODO: Patch these.
-        // Secret key: MFMCAQEwBQYDK2VwBCIEIHRlc3Qta2V5LXZlcnktc2VjdXJpdHktc3Vja
-        // C1zYWZloSMDIQCXQPbwnZ+Ihe9Y9t5k/vCRqr50HnkaXbKyKCX2ZAfb2Q==
+        // Secret key: SECRET+dGVzdC1rZXktdmVyeS1zZWN1cml0eS1zdWNoLXN
+        //             hZmWXQPbwnZ+Ihe9Y9t5k/vCRqr50HnkaXbKyKCX2ZAfb2
+        //             ZdA9vCdn4iF71j23mT+8JGqvnQeeRpdsrIoJfZkB9vZ
         // Public key: l0D28J2fiIXvWPbeZP7wkaq+dB55Gl2ysigl9mQH29k=
         let seed = ed25519::Seed(*b"test-key-very-security-such-safe");
         ed25519::keypair_from_seed(&seed)
     }
 
     fn get_test_public_key() -> ed25519::PublicKey {
-       let (pk, _sk) = get_test_key_pair();
-       pk
+        let (pk, _sk) = get_test_key_pair();
+        pk
     }
 
     fn get_test_secret_key() -> ed25519::SecretKey {
-       let (_pk, sk) = get_test_key_pair();
-       sk
+        let (_pk, sk) = get_test_key_pair();
+        sk
     }
 
     /// A sequence of 32 bytes that I don't want to repeat everywhere.
