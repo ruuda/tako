@@ -11,7 +11,13 @@ authors = [
 [dependencies]
 base64        = "0.9.0"
 filebuffer    = "0.4.0"
-sodiumoxide   = "0.0.16"
+
+# Disable "serde" feature from sodiumoxide; we don't use it,
+# so we can avoid the dependency.
+[dependencies.sodiumoxide]
+version = "0.0.16"
+default-features = false
+features = ["std"]
 
 [profile.release]
 # For the release build, optimize for size.
