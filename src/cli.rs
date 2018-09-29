@@ -89,11 +89,17 @@ pub struct Store {
 }
 
 #[derive(Debug, Eq, PartialEq)]
+pub struct Split {
+    pub image_path: PathBuf,
+}
+
+#[derive(Debug, Eq, PartialEq)]
 pub enum Cmd {
     Fetch(Vec<String>),
     Init(Vec<String>),
     Store(Store),
     GenKey,
+    Split(Split),
     Help(String),
     Version,
 }
@@ -228,6 +234,7 @@ pub fn parse(argv: Vec<String>) -> Result<Cmd, String> {
         Arg::Plain("fetch") => parse_fetch(args),
         Arg::Plain("store") => parse_store(args),
         Arg::Plain("gen-key") => parse_gen_key(args),
+        Arg::Plain("split") => parse_split(args),
         Arg::Long("version") => drain(args).and(Ok(Cmd::Version)),
         Arg::Short("h") | Arg::Long("help") => parse_help(args),
         _ => return unexpected(arg),
@@ -333,6 +340,26 @@ fn parse_gen_key(mut args: ArgIter) -> Result<Cmd, String> {
         }
     }
     Ok(Cmd::GenKey)
+}
+
+fn parse_split(mut args: ArgIter) -> Result<Cmd, String> {
+    let mut fname = None;
+    while let Some(arg) = args.next() {
+        match arg.as_ref() {
+            Arg::Plain(..) => fname = Some(PathBuf::from(arg.into_string())),
+            Arg::Short("h") | Arg::Long("help") => return drain_help(args, "split"),
+            _ => return unexpected(arg),
+        }
+    }
+
+    if let Some(image_path) = fname {
+        let split = Split {
+            image_path: image_path,
+        };
+        Ok(Cmd::Split(split))
+    } else {
+        Err("Expected a file to split.".to_string())
+    }
 }
 
 fn parse_help(mut args: ArgIter) -> Result<Cmd, String> {

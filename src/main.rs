@@ -26,8 +26,10 @@ use std::env;
 
 use sodiumoxide::crypto::sign::ed25519;
 
+mod chunk;
 mod cli;
 mod config;
+mod crc;
 mod curl;
 mod error;
 mod fetch;
@@ -87,6 +89,10 @@ fn run_gen_key() {
     println!("\nPublic key:\n{}", public_key_b64);
 }
 
+fn run_split(split: cli::Split) {
+    chunk::split_file_into_chunks(split.image_path.as_ref()).unwrap();
+}
+
 fn main() {
     use cli::Cmd;
     let args = env::args().collect();
@@ -95,6 +101,7 @@ fn main() {
         Ok(Cmd::Init(fnames)) => fnames.iter().for_each(run_init),
         Ok(Cmd::Store(store)) => run_store(store),
         Ok(Cmd::GenKey) => run_gen_key(),
+        Ok(Cmd::Split(split)) => run_split(split),
         Ok(Cmd::Help(cmd)) => cli::print_usage(cmd),
         Ok(Cmd::Version) => cli::print_version(),
         Err(msg) => {
