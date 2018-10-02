@@ -18,6 +18,7 @@
 use std::env;
 use std::fmt;
 use std::path::PathBuf;
+use std::str::FromStr;
 use std::vec;
 
 use version::Version;
@@ -90,6 +91,8 @@ pub struct Store {
 
 #[derive(Debug, Eq, PartialEq)]
 pub struct Split {
+    pub min_chunk_size: u32,
+    pub target_chunk_size: u32,
     pub image_paths: Vec<PathBuf>,
 }
 
@@ -344,8 +347,18 @@ fn parse_gen_key(mut args: ArgIter) -> Result<Cmd, String> {
 
 fn parse_split(mut args: ArgIter) -> Result<Cmd, String> {
     let mut fnames = Vec::new();
+    let mut min_chunk_size = 1000;
+    let mut target_chunk_size = 4000;
     while let Some(arg) = args.next() {
         match arg.as_ref() {
+            Arg::Long("min-chunk-size") => {
+                let n_str = expect_plain(&mut args, "Expected number of bytes after --min-chunk-size.")?;
+                min_chunk_size = u32::from_str(&n_str).map_err(|_| "Invalid minimal chunk size.".to_string())?;
+            }
+            Arg::Long("target-chunk-size") => {
+                let n_str = expect_plain(&mut args, "Expected number of bytes after --target-chunk-size.")?;
+                target_chunk_size = u32::from_str(&n_str).map_err(|_| "Invalid target chunk size.".to_string())?;
+            }
             Arg::Plain(..) => fnames.push(PathBuf::from(arg.into_string())),
             Arg::Short("h") | Arg::Long("help") => return drain_help(args, "split"),
             _ => return unexpected(arg),
@@ -354,6 +367,8 @@ fn parse_split(mut args: ArgIter) -> Result<Cmd, String> {
 
     let split = Split {
         image_paths: fnames,
+        min_chunk_size: min_chunk_size,
+        target_chunk_size: target_chunk_size,
     };
     Ok(Cmd::Split(split))
 }

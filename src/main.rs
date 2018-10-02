@@ -90,7 +90,11 @@ fn run_gen_key() {
 }
 
 fn run_split(split: cli::Split) {
-    chunk::split_and_print_stats(&split.image_paths[..]).unwrap();
+    chunk::split_and_print_stats(
+        split.min_chunk_size,
+        split.target_chunk_size,
+        &split.image_paths[..]
+    ).unwrap();
 }
 
 fn main() {

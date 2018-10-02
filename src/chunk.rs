@@ -7,9 +7,6 @@ use sodiumoxide::crypto::hash::sha256;
 use crc::crc16;
 use error::Result;
 
-const MIN_CHUNK_LEN: usize = 512;
-const IDEAL_SIZE: usize = 2048;
-
 #[derive(Eq, PartialEq, Debug, Hash)]
 struct Chunk {
     digest: sha256::Digest,
@@ -30,7 +27,13 @@ impl Chunk {
     }
 }
 
-fn split_buffer_into_chunks(data: &[u8], chunks: &mut HashSet<Chunk>) -> ChunksMeta {
+fn split_buffer_into_chunks(
+    min_chunk_len: u32,
+    target_chunk_len: u32,
+    data: &[u8],
+    chunks: &mut HashSet<Chunk>
+    ) -> ChunksMeta
+{
     let mut crc = 1;
     let mut data_slice = data;
     let mut has_more = true;
@@ -38,11 +41,11 @@ fn split_buffer_into_chunks(data: &[u8], chunks: &mut HashSet<Chunk>) -> ChunksM
 
     while has_more {
         has_more = false;
-        let mut split_threshold = 0xffff / IDEAL_SIZE as u16;
+        let mut split_threshold = 0xffff / target_chunk_len as u16;
 
         for (i, &b) in data_slice.iter().enumerate() {
             crc = crc16(crc, b);
-            if crc < split_threshold && i >= MIN_CHUNK_LEN {
+            if crc < split_threshold && i >= min_chunk_len as usize {
                 let (chunk, remainder) = data_slice.split_at(i);
                 assert!(data_slice.len() > remainder.len(), "{} > {}", data_slice.len(), remainder.len());
 
@@ -59,7 +62,7 @@ fn split_buffer_into_chunks(data: &[u8], chunks: &mut HashSet<Chunk>) -> ChunksM
             // Increase the splitting probability as the chunk grows larger, to
             // avoid very large chunks due to being unlucky. This also benefits
             // chunk reuse.
-            if i >= IDEAL_SIZE {
+            if i >= target_chunk_len as usize {
                 split_threshold += 2;
             }
         }
@@ -74,19 +77,29 @@ fn split_buffer_into_chunks(data: &[u8], chunks: &mut HashSet<Chunk>) -> ChunksM
 }
 
 /// Split a file into chunks. Mmaps the file.
-fn split_file_into_chunks(path: &Path, chunks: &mut HashSet<Chunk>) -> Result<ChunksMeta> {
+fn split_file_into_chunks(
+    min_chunk_len: u32,
+    target_chunk_len: u32,
+    path: &Path, chunks: &mut HashSet<Chunk>,
+    ) -> Result<ChunksMeta>
+{
     let fbuffer = FileBuffer::open(path)?;
-    Ok(split_buffer_into_chunks(&fbuffer[..], chunks))
+    Ok(split_buffer_into_chunks(min_chunk_len, target_chunk_len, &fbuffer[..], chunks))
 }
 
 /// Chunk all given files, print statistics.
-pub fn split_and_print_stats(paths: &[PathBuf]) -> Result<()> {
+pub fn split_and_print_stats(
+    min_chunk_len: u32,
+    target_chunk_len: u32,
+    paths: &[PathBuf],
+    ) -> Result<()>
+{
     let mut chunks = HashSet::new();
     let mut total_size = 0;
     let mut dedup_size = 0;
     let mut overhead = 0;
     for path in paths {
-        let meta = split_file_into_chunks(path.as_ref(), &mut chunks)?;
+        let meta = split_file_into_chunks(min_chunk_len, target_chunk_len, path.as_ref(), &mut chunks)?;
         total_size += meta.total_size;
         // For the index file, 32 bytes of sha256 and 4 bytes of len per chunk.
         overhead += 36 * meta.num_chunks;
