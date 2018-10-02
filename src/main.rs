@@ -20,6 +20,7 @@
 extern crate base64;
 extern crate filebuffer;
 extern crate sodiumoxide;
+extern crate libflate;
 
 use std::process;
 use std::env;

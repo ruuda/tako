@@ -1,8 +1,10 @@
 use std::path::{Path, PathBuf};
 use std::collections::HashSet;
+use std::io::Write;
 
 use filebuffer::FileBuffer;
 use sodiumoxide::crypto::hash::sha256;
+use libflate::gzip;
 
 use crc::crc16;
 use error::Result;
@@ -11,6 +13,7 @@ use error::Result;
 struct Chunk {
     digest: sha256::Digest,
     len: usize,
+    compressed_len: usize,
 }
 
 struct ChunksMeta {
@@ -20,9 +23,13 @@ struct ChunksMeta {
 
 impl Chunk {
     pub fn new(data: &[u8]) -> Chunk {
+        let mut gzip_encoder = gzip::Encoder::new(Vec::new()).unwrap();
+        gzip_encoder.write_all(data).unwrap();
+        let compressed_len = gzip_encoder.finish().as_result().unwrap().len();
         Chunk {
             digest: sha256::hash(data),
             len: data.len(),
+            compressed_len: compressed_len,
         }
     }
 }
@@ -97,6 +104,7 @@ pub fn split_and_print_stats(
     let mut chunks = HashSet::new();
     let mut total_size = 0;
     let mut dedup_size = 0;
+    let mut dedup_gzip_size = 0;
     let mut overhead = 0;
     for path in paths {
         let meta = split_file_into_chunks(min_chunk_len, target_chunk_len, path.as_ref(), &mut chunks)?;
@@ -106,12 +114,14 @@ pub fn split_and_print_stats(
     }
     for chunk in chunks {
         dedup_size += chunk.len;
+        dedup_gzip_size += chunk.compressed_len;
     }
 
-    println!("total size: {}", total_size);
-    println!("dedup size: {}", dedup_size);
-    println!("overhead:   {}", overhead);
-    println!("ratio:      {:6.2}%", 100.0 * (dedup_size + overhead) as f64 / total_size as f64);
+    println!("total size:      {}", total_size);
+    println!("dedup size:      {}", dedup_size);
+    println!("dedup gzip size: {}", dedup_gzip_size);
+    println!("index overhead:  {}", overhead);
+    println!("ratio:           {:.3}%", 100.0 * (dedup_gzip_size + overhead) as f64 / total_size as f64);
 
     Ok(())
 }
