@@ -90,7 +90,7 @@ pub struct Store {
 
 #[derive(Debug, Eq, PartialEq)]
 pub struct Split {
-    pub image_path: PathBuf,
+    pub image_paths: Vec<PathBuf>,
 }
 
 #[derive(Debug, Eq, PartialEq)]
@@ -343,23 +343,19 @@ fn parse_gen_key(mut args: ArgIter) -> Result<Cmd, String> {
 }
 
 fn parse_split(mut args: ArgIter) -> Result<Cmd, String> {
-    let mut fname = None;
+    let mut fnames = Vec::new();
     while let Some(arg) = args.next() {
         match arg.as_ref() {
-            Arg::Plain(..) => fname = Some(PathBuf::from(arg.into_string())),
+            Arg::Plain(..) => fnames.push(PathBuf::from(arg.into_string())),
             Arg::Short("h") | Arg::Long("help") => return drain_help(args, "split"),
             _ => return unexpected(arg),
         }
     }
 
-    if let Some(image_path) = fname {
-        let split = Split {
-            image_path: image_path,
-        };
-        Ok(Cmd::Split(split))
-    } else {
-        Err("Expected a file to split.".to_string())
-    }
+    let split = Split {
+        image_paths: fnames,
+    };
+    Ok(Cmd::Split(split))
 }
 
 fn parse_help(mut args: ArgIter) -> Result<Cmd, String> {
