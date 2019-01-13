@@ -7,14 +7,15 @@ they indicate near-term versus long-term goals.
 
  * Rename `RestartUnit=` to `Restart=`.
  * Allow space-separated units in `Restart=`.
-
-## 0.1
-
  * Replace [`ring`][ring] with [`ed25519-dalek`][dalek] and [`sha2`][sha2].
    Ring’s versioning and stability policy is problematic; Ring cannot securely
    be used with Rust 1.24 which we aim to support. RustCrypto at least aims to
    support Rust 1.21 at the time of writing.
  * Implement `tako fetch --init`.
+ * Implement `x <= v < y` version pattern.
+
+## 0.1
+
  * Ensure it runs on CoreOS.
  * Check for spaces in versions.
  * Keep a changelog.
@@ -23,7 +24,6 @@ they indicate near-term versus long-term goals.
 
  * Thoroughly test failure modes, not only success path.
  * Print friendly errors, have right exit codes.
- * Implement `x <= v < y` version pattern.
  * Fuzz the manifest parser and config file parser.
  * Implement restarting units.
 
