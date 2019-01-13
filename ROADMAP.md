@@ -10,7 +10,8 @@ they indicate near-term versus long-term goals.
  * Replace [`ring`][ring] with [`ed25519-dalek`][dalek] and [`sha2`][sha2].
    Ring’s versioning and stability policy is problematic; Ring cannot securely
    be used with Rust 1.24 which we aim to support. RustCrypto at least aims to
-   support Rust 1.21 at the time of writing.
+   support Rust 1.21 at the time of writing. Hindsight note: actually, we later
+   opted for [`libsodium`][sodium] with Rust bindings.
  * Implement `tako fetch --init`.
  * Implement `x <= v < y` version pattern.
 
@@ -41,6 +42,7 @@ they indicate near-term versus long-term goals.
  * Reduce binary size.
  * Investigate using etag headers to reduce bandwidth.
 
-[ring]:  https://github.com/briansmith/ring
-[dalek]: https://github.com/dalek-cryptography/ed25519-dalek
-[sha2]:  https://github.com/RustCrypto/hashes
+[ring]:   https://github.com/briansmith/ring
+[dalek]:  https://github.com/dalek-cryptography/ed25519-dalek
+[sha2]:   https://github.com/RustCrypto/hashes
+[sodium]: https://libsodium.org
