@@ -30,6 +30,7 @@ directory. The manifest will still list the image. If a client selects that
 particular image as a candidate to download, the [`tako fetch`](tako-fetch.md)
 will fail. This is generally not an issue if a newer compatible version is
 available. If this is not the case, you can configure the server to serve “410
-Gone” on the url of the removed image. If [`tako fetch`](tako-fetch.md)
-encounters a 410 it will not fail, but instead select an earlier compatible
-version and try again. <!-- TODO: This is not actually implemented. -->
+Gone” on the url of the removed image. In the future — the following has not yet
+been implemented — if [`tako fetch`](tako-fetch.md) encounters a 410 it will not
+fail, but instead select an earlier compatible version and try again.
+<!-- TODO: Implement handling of 410 at some point. -->
