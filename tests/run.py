@@ -37,8 +37,8 @@ class ExecError(Exception):
         self.stderr = stderr
 
     def print_details(self):
-        print('# Process {} exited with unexpected '
-              'exit code {}.'.format(self.command, self.code))
+        print(f'# Process {self.command} exited with unexpected '
+              f'exit code {self.code}.')
         print('\nSTDOUT\n------')
         sys.stdout.flush()
         sys.stdout.buffer.write(self.stdout)
@@ -64,15 +64,15 @@ def test(description):
     try:
         yield
     except:
-        print('not ok {:2} {}'.format(test_number, description))
+        print(f'not ok {test_number:2} {description}')
         exc_type, error, tb = sys.exc_info()
         _filename, line, _function, statement = traceback.extract_tb(tb)[-1]
-        print('# line {}: {}'.format(line, statement))
+        print(f'# line {line}: {statement}')
         if exc_type is ExecError:
             error.print_details()
         test_failed = True
     else:
-        print('ok {:2} {}'.format(test_number, description))
+        print(f'ok {test_number:2} {description}')
 
     # When output of this script is piped into a TAP runner such as 'prove',
     # Python would buffer stdout, which means we don't see test results as they
@@ -153,14 +153,14 @@ with test('Fetches an image into the destination store'):
 with test('Does not download an existing image'):
     exec('target/debug/tako', 'fetch', 'tests/config/foo-any.tako')
     # TODO: Add a hook to the webserver, and verify that indeed we did not
-    # get a # request for the image, only for the manifest.
+    # get a request for the image, only for the manifest.
     assert os.path.exists(foo_store_img_v2)
     assert os.readlink('tests/scratch/foo/latest') == store_img_v2
 
 with test('Deletes a damaged image'):
     # Corrupt the file in the store. Running "tako fetch" again should
     # detect this, and delete the file (such that on a next run it would
-    # be # redownloaded).
+    # be redownloaded).
     os.chmod(foo_store_img_v2, int('755', 8))
     with open(foo_store_img_v2, 'w') as f:
         f.write('burrito')
