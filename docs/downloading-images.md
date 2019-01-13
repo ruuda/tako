@@ -43,10 +43,15 @@ recommended to avoid overloading the remote server.
 
 ## Initial Provisioning
 
-See [`tako fetch --init`](tako-fetch.md#-init).
+Tako can be used to acquire an initial image. For example, you can run
+`tako fetch` through [`ExecStartPre=`][start-pre] with systemd. In this case,
+downloading the latest manifest and possibly downloading a new image, may incur
+an unacceptable startup delay. In this case the [`--init`](tako-fetch.md#-init)
+flag can be used to skip network access if a valid manifest and image already
+exist.
 
-<!-- TODO: Elaborate. -->
-
+<!-- TODO: The name "init" may be confusing. Maybe call it "init-only". -->
 
 [systemd-timer]: https://www.freedesktop.org/software/systemd/man/systemd.timer.html
 [delay]:         https://www.freedesktop.org/software/systemd/man/systemd.timer.html#RandomizedDelaySec=
+[start-pre]:     https://www.freedesktop.org/software/systemd/man/systemd.service.html#ExecStartPre=
