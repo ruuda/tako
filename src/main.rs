@@ -5,18 +5,6 @@
 // you may not use this file except in compliance with the License.
 // A copy of the License has been included in the root of the repository.
 
-// TODO: Use the system allocator (not jemalloc), when that makes it into Rust
-// stable. See also this excellent binary size guide:
-// https://jamesmunns.com/blog/tinyrocket/
-//
-// #![feature(alloc_system, global_allocator, allocator_api)]
-// extern crate alloc_system;
-//
-// use alloc_system::System;
-//
-// #[global_allocator]
-// static A: System = System;
-
 extern crate filebuffer;
 extern crate sodiumoxide;
 

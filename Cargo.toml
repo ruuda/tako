@@ -25,6 +25,6 @@ lto = true
 codegen-units = 1
 incremental = false
 
-# TODO: Enable this once opt-level="z" works on Rust stable.
+# TODO: Enable this once we require Rust >= 1.28, where opt-level=z was stabilized.
 # Optimize for size, not speed.
 # opt-level = "z"
