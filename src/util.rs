@@ -23,7 +23,7 @@ const HEX_CHARS: [char; 16] = [
     '8', '9', 'a', 'b', 'c', 'd', 'e', 'f',
 ];
 
-/// String-format a bytes as lowercase hexadecimal, append to the string.
+/// String-format bytes as lowercase hexadecimal, append to the string.
 pub fn append_hex(string: &mut String, bytes: &[u8]) {
     for &b in bytes {
         string.push(HEX_CHARS[(b >> 4) as usize]);

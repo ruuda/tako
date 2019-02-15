@@ -31,6 +31,7 @@ mod config;
 mod curl;
 mod error;
 mod fetch;
+mod format;
 mod manifest;
 mod store;
 mod util;
