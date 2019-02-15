@@ -17,7 +17,6 @@
 // #[global_allocator]
 // static A: System = System;
 
-extern crate base64;
 extern crate filebuffer;
 extern crate sodiumoxide;
 
@@ -71,7 +70,7 @@ fn run_gen_key() {
     // it is easy to deal with in config files (for the public key), and it can
     // be safely printed to stdout and copied from there.
     let pair_b64 = util::format_key_pair(&public_key, &secret_key);
-    let public_key_b64 = base64::encode(public_key.as_ref());
+    let public_key_b64 = format::encode_base64(public_key.as_ref());
 
     // Print the private key to stdout, rather than writing it to a file. This
     // means that at least the sensitive data is not written to disk. (It is

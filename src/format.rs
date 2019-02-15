@@ -43,6 +43,13 @@ pub fn append_base64(string: &mut String, bytes: &[u8]) {
     }
 }
 
+/// String-format bytes as base64 (with + and /), append to the string.
+pub fn encode_base64(bytes: &[u8]) -> String {
+    let mut s = String::with_capacity((bytes.len() + 2) / 3 * 4);
+    append_base64(&mut s, bytes);
+    s
+}
+
 /// Return `i` such that `BASE64_CHARS[i] == ch`.
 fn decode_base64_char(ch: u8) -> Option<u8> {
     match ch {
@@ -55,17 +62,17 @@ fn decode_base64_char(ch: u8) -> Option<u8> {
     }
 }
 
-/// Decode a base64 (with + and /) string back to bytes.
-pub fn decode_base64(b64: &str) -> Option<Vec<u8>> {
+/// Decode a base64 (with + and /) string (encoded as UTF-8) back to bytes.
+pub fn decode_base64<Bytes: AsRef<[u8]>>(b64: Bytes) -> Option<Vec<u8>> {
     // The input string length must be a multiple of 4.
-    let max_bytes_len = match b64.len() {
+    let max_bytes_len = match b64.as_ref().len() {
         n if n % 4 != 0 => return None,
         n => n / 4 * 3,
     };
 
     let mut bytes = Vec::with_capacity(max_bytes_len);
 
-    for quartet in b64.as_bytes().chunks(4) {
+    for quartet in b64.as_ref().chunks(4) {
         let b0 = decode_base64_char(quartet[0])?;
         let b1 = decode_base64_char(quartet[1])?;
         bytes.push((b0 << 2) | (b1 >> 4));

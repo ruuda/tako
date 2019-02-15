@@ -10,8 +10,6 @@
 use std::io;
 use std::result;
 
-use base64;
-
 use version::Version;
 
 #[derive(Debug)]
@@ -23,7 +21,7 @@ pub enum Error {
     IncompleteConfig(&'static str),
 
     /// Public key in config on a given line could not be parsed as base64.
-    InvalidPublicKeyData(usize, base64::DecodeError),
+    InvalidPublicKeyData(usize),
 
     /// Secret key was not prefixed with "SECRET+".
     InvalidSecretKeyPrefix,
@@ -35,7 +33,7 @@ pub enum Error {
     InvalidManifest(&'static str),
 
     /// Signature in manifest could not be parsed as base64.
-    InvalidSignatureData(base64::DecodeError),
+    InvalidSignatureData,
 
     /// Signature verification failed.
     InvalidSignature,

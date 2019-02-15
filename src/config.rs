@@ -9,10 +9,10 @@
 
 use std::path::PathBuf;
 
-use base64;
 use sodiumoxide::crypto::sign::ed25519;
 
 use error::{Error, Result};
+use format;
 use version::Version;
 
 #[derive(Debug)]
@@ -25,10 +25,8 @@ pub struct Config {
 }
 
 fn parse_public_key(lineno: usize, key_base64: &str) -> Result<[u8; 32]> {
-    let bytes = match base64::decode(key_base64) {
-        Ok(bs) => bs,
-        Err(err) => return Err(Error::InvalidPublicKeyData(lineno, err)),
-    };
+    let err = Error::InvalidPublicKeyData(lineno);
+    let bytes = format::decode_base64(key_base64).ok_or(err)?;
 
     if bytes.len() != 32 {
         let msg = "Ed25519 public key is not 32 bytes (44 characters base64).";

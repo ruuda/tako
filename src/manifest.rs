@@ -14,11 +14,11 @@ use std::io::{Read, Write};
 use std::path::{Path, PathBuf};
 use std::str;
 
-use base64;
 use sodiumoxide::crypto::hash::sha256;
 use sodiumoxide::crypto::sign::ed25519;
 
 use error::{Error, Result};
+use format;
 use util;
 use version::Version;
 
@@ -136,10 +136,8 @@ fn parse_entry(line: &[u8]) -> Result<Entry> {
 
 /// Parse the base64-encoded signature line.
 fn parse_signature(sig_base64: &[u8]) -> Result<[u8; 64]> {
-    let bytes = match base64::decode(sig_base64) {
-        Ok(bs) => bs,
-        Err(err) => return Err(Error::InvalidSignatureData(err)),
-    };
+    let err = Error::InvalidSignatureData;
+    let bytes = format::decode_base64(sig_base64).ok_or(err)?;
 
     if bytes.len() != 64 {
         let msg = "Ed25519 signature is not 64 bytes (88 characters base64).";
@@ -263,9 +261,8 @@ impl Manifest {
         out.push('\n');
 
         let signature = ed25519::sign_detached(out.as_bytes(), secret_key);
-        let signature_b64 = base64::encode(signature.as_ref());
 
-        out.push_str(&signature_b64);
+        format::append_base64(&mut out, signature.as_ref());
         out.push('\n');
 
         out

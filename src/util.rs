@@ -11,12 +11,12 @@ use std::fs;
 use std::io;
 use std::path::Path;
 
-use base64;
 use filebuffer::FileBuffer;
 use sodiumoxide::crypto::hash::sha256;
 use sodiumoxide::crypto::sign::ed25519;
 
 use error::{Error, Result};
+use format;
 
 const HEX_CHARS: [char; 16] = [
     '0', '1', '2', '3', '4', '5', '6', '7',
@@ -51,8 +51,8 @@ pub fn parse_key_pair(pair_base64: &str) -> Result<(ed25519::PublicKey, ed25519:
         _ => return Err(Error::InvalidSecretKeyPrefix),
     }
 
-    let err = Err(Error::InvalidSecretKeyData);
-    let pair_bytes = base64::decode(&pair_base64[7..]).or(err)?;
+    let err = Error::InvalidSecretKeyData;
+    let pair_bytes = format::decode_base64(&pair_base64[7..]).ok_or(err)?;
 
     // The key pair printed to the user is the concatenation of the private key
     // (64 bytes) and public key (32 bytes).
@@ -83,7 +83,7 @@ pub fn format_key_pair(public_key: &ed25519::PublicKey, secret_key: &ed25519::Se
 
     let mut result = String::with_capacity(128 + 7);
     result.push_str("SECRET+");
-    result.push_str(&base64::encode(&pair_bytes));
+    format::append_base64(&mut result, &pair_bytes);
     result
 }
 

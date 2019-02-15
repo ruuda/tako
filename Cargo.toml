@@ -9,8 +9,7 @@ authors = [
 ]
 
 [dependencies]
-base64        = "0.9.0"
-filebuffer    = "0.4.0"
+filebuffer = "0.4.0"
 
 # Disable "serde" feature from sodiumoxide; we don't use it,
 # so we can avoid the dependency.
