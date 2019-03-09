@@ -2,7 +2,10 @@ site_name: Tako
 theme: readthedocs
 repo_url: https://github.com/ruuda/tako
 strict: true
-pages:
+theme:
+  name: null
+  custom_dir: theme
+nav:
   - Overview: index.md
   - User Guide:
     - Downloading Images: downloading-images.md
