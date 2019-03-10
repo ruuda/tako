@@ -1,162 +1,278 @@
+
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<html>
 <head>
+  <!--
+    Documentation theme copyright 2019 Ruud van Asseldonk.
+    See https://github.com/ruuda/tako/tree/master/theme.
+  -->
   <meta charset="utf-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  
-  
-  <link rel="shortcut icon" href="../img/favicon.ico">
-  <title>Distributing Images - Tako</title>
-  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Distributing Images — Tako</title>
+  <link href="https://fonts.googleapis.com/css?family=Roboto+Mono:400|Roboto:400,500,700" rel="stylesheet">
+  <style>
+  /* Modular scale with exponent 1.26, about 2^(1/3), so we get 2em in there,
+     which is convenient. 1.26 is also close to (golden ratio)^0.5.
+     0.63em
+     0.80em
+     1.00em
+     1.26em
+     1.59em
+     2.00em
+  */
+  * { margin: 0; padding: 0; }
+  html {
+    font-family: 'Roboto', sans-serif;
+    font-size: 16px;
+    line-height: 1.59em;
+    background-color: #fff;
+    min-height: 100%;
+    position: relative;
+  }
+  body {
+    /* Tricks to make the sidebar full-height on short pages. */
+    position: absolute;
+    height: 100%;
+    width: 100%;
+  }
+  #content {
+    max-width: 66rem;
+    margin-left: auto;
+    margin-right: auto;
+    position: relative;
+    color: #333;
+    min-height: 100%;
+  }
+  #main {
+    margin-left: 18em;
+    margin-right: 2em;
+    padding: 2rem;
+    overflow: hidden;
+  }
+  #breadcrumbs {
+    margin-bottom: 2.85rem;
+    word-spacing: 0.3em;
+    color: #78a;
+  }
+  #breadcrumbs a {
+    word-spacing: 0;
+    color: #78a;
+  }
+  section {
+    margin-top: 1.3rem;
+  }
+  h1, h2, h3 {
+    font-weight: 500;
+    font-size: 1rem;
+    color: #444;
+    margin-bottom: 1.59rem;
+  }
+  h1 {
+    font-size: 2rem;
+    margin-bottom: 1.9rem;
+  }
+  h2 {
+    font-size: 1.59rem;
+    margin-top: 3.38rem;
+    margin-bottom: 1.39rem;
+  }
+  code {
+    font-family: 'Roboto Mono', monospace;
+    font-size: 0.84rem;
+    line-height: 1.59rem;
+  }
+  p > code,
+  a > code,
+  h3 > code,
+  li > code {
+    background-color: #f0f0f0;
+    padding: 0.13rem;
+    padding-left: 0.3rem;
+    padding-right: 0.3rem;
+    border-radius: 0.2rem;
+    line-height: 1rem;
+  }
+  h3 {
+    margin-top: 2.29rem;
+    margin-bottom: 0.89rem;
+  }
+  h3 > code {
+    margin-left: -0.1rem;
+  }
+  a {
+    color: #36d;
+    text-decoration: none;
+  }
+  p, ul, pre {
+    /* Same space as line height, leave exactly one line blank. */
+    margin-bottom: 1.59em;
+  }
+  pre {
+    padding: 1.41rem;
+    padding-right: 0;
+    background-color: #f8f8f8;
+    border-radius: 0 0.2rem 0.2rem 0;
+    border-left: 0.3rem solid #d5d8e0;
+    overflow-x: auto;
+  }
+  pre > code {
+    margin-right: 1.41rem;
+    color: #555;
+  }
+  ul {
+    list-style-type: none;
+  }
+  #main li:before {
+    color: #555;
+    content: '\2022';
+    display: inline-block;
+    font-weight: 700;
+    margin-left: -0.9rem;
+    width: 0.9rem;
+  }
+  #main li {
+    margin-left: 0.87rem;
+  }
+  #nav-prev-next {
+    margin-top: 3.18rem;
+    padding-bottom: 3.18rem;
+  }
+  #nav-prev, #nav-next, #repo-link {
+    display: inline-block;
+  }
+  #nav-prev {
+    float: left;
+  }
+  #nav-next, #repo-link {
+    float: right;
+    text-align: right;
+  }
+  #nav-prev::before {
+    content: '\219e';
+    padding-right: 0.5em;
+  }
+  #nav-next::after {
+    content: '\21a0';
+    padding-left: 0.5em;
+  }
+  aside {
+    position: absolute;
+    top: 0;
+    left: -84em;
+    width: 100em;
+    border-right: 1px solid #eee;
+    background-color: #fafafa;
+    height: 100%;
+  }
+  aside nav {
+    margin-top: 8.4rem;
+    width: 14rem;
+    float: right;
+    /* Put the active chapter border over the sidebar border. */
+    margin-right: -1px;
+  }
+  aside a {
+    color: #78a;
+  }
+  aside .toc-section {
+    font-weight: 700;
+  }
+  aside ul {
+    margin-bottom: 0;
+  }
+  aside li ul {
+    /* This padding destroys the vertical rhythm,
+       but I somehow feel it is necessary. */
+    padding-top: 0.3rem;
+    padding-bottom: 0.4rem;
+  }
+  aside li.toc-section {
+    padding-top: 1.59rem;
+  }
+  aside li.toc-section a {
+    color: #36d;
+  }
+  aside li.current, aside li ul {
+    border-right: 0.3em solid #d5d8e0;
+    padding-left: 1em;
+    margin-left: -1em;
+  }
+  aside .current a {
+    color: #557;
+  }
+  aside li.toc-heading {
+    padding-left: 1em;
+  }
 
-  <link rel="stylesheet" href="../css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="../css/theme_extra.css" type="text/css" />
-  <link rel="stylesheet" href="../css/highlight.css">
-  
-  <script>
-    // Current page data
-    var mkdocs_page_name = "Distributing Images";
-    var mkdocs_page_input_path = "distributing-images.md";
-    var mkdocs_page_url = "/distributing-images/";
-  </script>
-  
-  <script src="../js/jquery-2.1.1.min.js"></script>
-  <script src="../js/modernizr-2.8.3.min.js"></script>
-  <script type="text/javascript" src="../js/highlight.pack.js"></script> 
-  
+  @media(max-width: 1150px)
+  {
+    html { font-size: 15px; }
+  }
+
+  /* Move the sidebar TOC below content at small widths. */
+  @media(max-width: 800px)
+  {
+    aside {
+      position: relative;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: auto;
+      border-top: 1px solid #eee;
+      border-right: 0px none;
+      overflow: hidden;
+    }
+    aside nav {
+      margin-left: 4em;
+      margin-bottom: 3em;
+      margin-top: 1.59em;
+      float: none;
+    }
+    #main {
+      margin-left: 2em;
+      padding-bottom: 1.59em;
+    }
+    aside li.current, aside li ul {
+      border-right: 0px none;
+    }
+  }
+
+  /* Use less generous margins for very narrow viewports. */
+  @media(max-width: 650px)
+  {
+    #main {
+      margin-left: 0;
+      margin-right: 0;
+    }
+    aside nav {
+      margin-left: 2em;
+      margin-bottom: 1.59em;
+    }
+  }
+
+  @media(max-width: 450px)
+  {
+    #main {
+      padding-left: 1.59em;
+      padding-right: 1.59em;
+    }
+    aside nav {
+      margin-left: 1.59em;
+    }
+  }
+  </style>
 </head>
-
-<body class="wy-body-for-nav" role="document">
-
-  <div class="wy-grid-for-nav">
-
-    
-    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
-      <div class="wy-side-nav-search">
-        <a href=".." class="icon icon-home"> Tako</a>
-        <div role="search">
-  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
-  </form>
-</div>
-      </div>
-
-      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-	<ul class="current">
-	  
-          
-            <li class="toctree-l1">
-		
-    <a class="" href="..">Overview</a>
-	    </li>
-          
-            <li class="toctree-l1">
-		
-    <span class="caption-text">User Guide</span>
-    <ul class="subnav">
-                <li class="">
-                    
-    <a class="" href="../downloading-images/">Downloading Images</a>
-                </li>
-                <li class=" current">
-                    
-    <a class="current" href="./">Distributing Images</a>
-    <ul class="subnav">
-            
-    <li class="toctree-l3"><a href="#distributing-images">Distributing Images</a></li>
-    
-        <ul>
-        
-            <li><a class="toctree-l4" href="#immutable-images">Immutable Images</a></li>
-        
-        </ul>
-    
-
-    </ul>
-                </li>
-                <li class="">
-                    
-    <a class="" href="../configuration/">Configuration</a>
-                </li>
-                <li class="">
-                    
-    <a class="" href="../versions/">Versions</a>
-                </li>
-    </ul>
-	    </li>
-          
-            <li class="toctree-l1">
-		
-    <span class="caption-text">Reference</span>
-    <ul class="subnav">
-                <li class="">
-                    
-    <a class="" href="../tako-fetch/">tako fetch</a>
-                </li>
-                <li class="">
-                    
-    <a class="" href="../tako-store/">tako store</a>
-                </li>
-                <li class="">
-                    
-    <a class="" href="../tako-gen-key/">tako gen-key</a>
-                </li>
-    </ul>
-	    </li>
-          
-            <li class="toctree-l1">
-		
-    <span class="caption-text">Internals</span>
-    <ul class="subnav">
-                <li class="">
-                    
-    <a class="" href="../manifest-format/">Manifest Format</a>
-                </li>
-    </ul>
-	    </li>
-          
-        </ul>
-      </div>
-      &nbsp;
-    </nav>
-
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
-        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+<body>
+  <div id="content">
+    <div id="main">
+      <nav id="breadcrumbs">
         <a href="..">Tako</a>
+        › <a href="..">User Guide</a>
+  › <a href="./">Distributing Images</a>
+  <a id="repo-link" href="https://github.com/ruuda/tako/">GitHub</a>
       </nav>
-
-      
-      <div class="wy-nav-content">
-        <div class="rst-content">
-          <div role="navigation" aria-label="breadcrumbs navigation">
-  <ul class="wy-breadcrumbs">
-    <li><a href="..">Docs</a> &raquo;</li>
-    
-      
-        
-          <li>User Guide &raquo;</li>
-        
-      
-    
-    <li>Distributing Images</li>
-    <li class="wy-breadcrumbs-aside">
-      
-        <a href="https://github.com/ruuda/tako/edit/master/docs/distributing-images.md"
-          class="icon icon-github"> Edit on GitHub</a>
-      
-    </li>
-  </ul>
-  <hr/>
-</div>
-          <div role="main">
-            <div class="section">
-              
-                <h1 id="distributing-images">Distributing Images</h1>
+      <section>
+        <h1 id="distributing-images">Distributing Images</h1>
 <p>A Tako server is a regular http server, with a particular directory layout.
 The origin uri points to a directory that contains the manifest file and the
 image store.</p>
@@ -184,58 +300,37 @@ directory. The manifest will still list the image. If a client selects that
 particular image as a candidate to download, the <a href="../tako-fetch/"><code>tako fetch</code></a>
 will fail. This is generally not an issue if a newer compatible version is
 available. If this is not the case, you can configure the server to serve “410
-Gone” on the url of the removed image. If <a href="../tako-fetch/"><code>tako fetch</code></a>
-encounters a 410 it will not fail, but instead select an earlier compatible
-version and try again. <!-- TODO: This is not actually implemented. --></p>
-              
-            </div>
-          </div>
-          <footer>
-  
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="../configuration/" class="btn btn-neutral float-right" title="Configuration">Next <span class="icon icon-circle-arrow-right"></span></a>
-      
-      
-        <a href="../downloading-images/" class="btn btn-neutral" title="Downloading Images"><span class="icon icon-circle-arrow-left"></span> Previous</a>
-      
-    </div>
-  
-
-  <hr/>
-
-  <div role="contentinfo">
-    <!-- Copyright etc -->
-    
-  </div>
-
-  Built with <a href="http://www.mkdocs.org">MkDocs</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
-</footer>
-      
-        </div>
+Gone” on the url of the removed image. In the future — the following has not yet
+been implemented — if <a href="../tako-fetch/"><code>tako fetch</code></a> encounters a 410 it will not
+fail, but instead select an earlier compatible version and try again.
+<!-- TODO: Implement handling of 410 at some point. --></p>
+      </section>
+      <nav id="nav-prev-next">
+        <a id="nav-prev" href="../downloading-images/" title="Downloading Images">Previous</a>
+        <a id="nav-next" href="../configuration/" title="Configuration"/>Next</a>
+        </nav>
       </div>
-
-    </section>
-
+    <aside>
+      <nav>
+        <ul>
+        <li class="toc-section"><a href="..">Overview</a></li>
+          <li class="toc-section"><a href="..">User Guide</a></li>
+          <li class="toc-chapter"><a href="../downloading-images/">Downloading Images</a></li>
+            <li class="toc-chapter current"><a href="./">Distributing Images</a></li>
+            <li><ul>
+              <li class="toc-heading"><a href="distributing-images/../#immutable-images">Immutable Images</a></li>
+              </ul></li>
+            <li class="toc-chapter"><a href="../configuration/">Configuration</a></li>
+            <li class="toc-chapter"><a href="../versions/">Versions</a></li>
+            <li class="toc-section"><a href="..">Reference</a></li>
+          <li class="toc-chapter"><a href="../tako-fetch/">tako fetch</a></li>
+            <li class="toc-chapter"><a href="../tako-store/">tako store</a></li>
+            <li class="toc-chapter"><a href="../tako-gen-key/">tako gen-key</a></li>
+            <li class="toc-section"><a href="..">Internals</a></li>
+          <li class="toc-chapter"><a href="../manifest-format/">Manifest Format</a></li>
+            </ul>
+      </nav>
+    </aside>
   </div>
-
-  <div class="rst-versions" role="note" style="cursor: pointer">
-    <span class="rst-current-version" data-toggle="rst-current-version">
-      
-          <a href="https://github.com/ruuda/tako/" class="fa fa-github" style="float: left; color: #fcfcfc"> GitHub</a>
-      
-      
-        <span><a href="../downloading-images/" style="color: #fcfcfc;">&laquo; Previous</a></span>
-      
-      
-        <span style="margin-left: 15px"><a href="../configuration/" style="color: #fcfcfc">Next &raquo;</a></span>
-      
-    </span>
-</div>
-    <script>var base_url = '..';</script>
-    <script src="../js/theme.js"></script>
-      <script src="../search/require.js"></script>
-      <script src="../search/search.js"></script>
-
 </body>
 </html>

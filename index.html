@@ -1,247 +1,308 @@
+
 <!DOCTYPE html>
-<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
-<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<html>
 <head>
+  <!--
+    Documentation theme copyright 2019 Ruud van Asseldonk.
+    See https://github.com/ruuda/tako/tree/master/theme.
+  -->
   <meta charset="utf-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="None">
-  
-  <link rel="shortcut icon" href="./img/favicon.ico">
-  <title>Overview - Tako</title>
-  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Custom Docs Theme — Tako</title>
+  <link href="https://fonts.googleapis.com/css?family=Roboto+Mono:400|Roboto:400,500,700" rel="stylesheet">
+  <style>
+  /* Modular scale with exponent 1.26, about 2^(1/3), so we get 2em in there,
+     which is convenient. 1.26 is also close to (golden ratio)^0.5.
+     0.63em
+     0.80em
+     1.00em
+     1.26em
+     1.59em
+     2.00em
+  */
+  * { margin: 0; padding: 0; }
+  html {
+    font-family: 'Roboto', sans-serif;
+    font-size: 16px;
+    line-height: 1.59em;
+    background-color: #fff;
+    min-height: 100%;
+    position: relative;
+  }
+  body {
+    /* Tricks to make the sidebar full-height on short pages. */
+    position: absolute;
+    height: 100%;
+    width: 100%;
+  }
+  #content {
+    max-width: 66rem;
+    margin-left: auto;
+    margin-right: auto;
+    position: relative;
+    color: #333;
+    min-height: 100%;
+  }
+  #main {
+    margin-left: 18em;
+    margin-right: 2em;
+    padding: 2rem;
+    overflow: hidden;
+  }
+  #breadcrumbs {
+    margin-bottom: 2.85rem;
+    word-spacing: 0.3em;
+    color: #78a;
+  }
+  #breadcrumbs a {
+    word-spacing: 0;
+    color: #78a;
+  }
+  section {
+    margin-top: 1.3rem;
+  }
+  h1, h2, h3 {
+    font-weight: 500;
+    font-size: 1rem;
+    color: #444;
+    margin-bottom: 1.59rem;
+  }
+  h1 {
+    font-size: 2rem;
+    margin-bottom: 1.9rem;
+  }
+  h2 {
+    font-size: 1.59rem;
+    margin-top: 3.38rem;
+    margin-bottom: 1.39rem;
+  }
+  code {
+    font-family: 'Roboto Mono', monospace;
+    font-size: 0.84rem;
+    line-height: 1.59rem;
+  }
+  p > code,
+  a > code,
+  h3 > code,
+  li > code {
+    background-color: #f0f0f0;
+    padding: 0.13rem;
+    padding-left: 0.3rem;
+    padding-right: 0.3rem;
+    border-radius: 0.2rem;
+    line-height: 1rem;
+  }
+  h3 {
+    margin-top: 2.29rem;
+    margin-bottom: 0.89rem;
+  }
+  h3 > code {
+    margin-left: -0.1rem;
+  }
+  a {
+    color: #36d;
+    text-decoration: none;
+  }
+  p, ul, pre {
+    /* Same space as line height, leave exactly one line blank. */
+    margin-bottom: 1.59em;
+  }
+  pre {
+    padding: 1.41rem;
+    padding-right: 0;
+    background-color: #f8f8f8;
+    border-radius: 0 0.2rem 0.2rem 0;
+    border-left: 0.3rem solid #d5d8e0;
+    overflow-x: auto;
+  }
+  pre > code {
+    margin-right: 1.41rem;
+    color: #555;
+  }
+  ul {
+    list-style-type: none;
+  }
+  #main li:before {
+    color: #555;
+    content: '\2022';
+    display: inline-block;
+    font-weight: 700;
+    margin-left: -0.9rem;
+    width: 0.9rem;
+  }
+  #main li {
+    margin-left: 0.87rem;
+  }
+  #nav-prev-next {
+    margin-top: 3.18rem;
+    padding-bottom: 3.18rem;
+  }
+  #nav-prev, #nav-next, #repo-link {
+    display: inline-block;
+  }
+  #nav-prev {
+    float: left;
+  }
+  #nav-next, #repo-link {
+    float: right;
+    text-align: right;
+  }
+  #nav-prev::before {
+    content: '\219e';
+    padding-right: 0.5em;
+  }
+  #nav-next::after {
+    content: '\21a0';
+    padding-left: 0.5em;
+  }
+  aside {
+    position: absolute;
+    top: 0;
+    left: -84em;
+    width: 100em;
+    border-right: 1px solid #eee;
+    background-color: #fafafa;
+    height: 100%;
+  }
+  aside nav {
+    margin-top: 8.4rem;
+    width: 14rem;
+    float: right;
+    /* Put the active chapter border over the sidebar border. */
+    margin-right: -1px;
+  }
+  aside a {
+    color: #78a;
+  }
+  aside .toc-section {
+    font-weight: 700;
+  }
+  aside ul {
+    margin-bottom: 0;
+  }
+  aside li ul {
+    /* This padding destroys the vertical rhythm,
+       but I somehow feel it is necessary. */
+    padding-top: 0.3rem;
+    padding-bottom: 0.4rem;
+  }
+  aside li.toc-section {
+    padding-top: 1.59rem;
+  }
+  aside li.toc-section a {
+    color: #36d;
+  }
+  aside li.current, aside li ul {
+    border-right: 0.3em solid #d5d8e0;
+    padding-left: 1em;
+    margin-left: -1em;
+  }
+  aside .current a {
+    color: #557;
+  }
+  aside li.toc-heading {
+    padding-left: 1em;
+  }
 
-  <link rel="stylesheet" href="./css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="./css/theme_extra.css" type="text/css" />
-  <link rel="stylesheet" href="./css/highlight.css">
-  
-  <script>
-    // Current page data
-    var mkdocs_page_name = "Overview";
-    var mkdocs_page_input_path = "index.md";
-    var mkdocs_page_url = "/";
-  </script>
-  
-  <script src="./js/jquery-2.1.1.min.js"></script>
-  <script src="./js/modernizr-2.8.3.min.js"></script>
-  <script type="text/javascript" src="./js/highlight.pack.js"></script> 
-  
+  @media(max-width: 1150px)
+  {
+    html { font-size: 15px; }
+  }
+
+  /* Move the sidebar TOC below content at small widths. */
+  @media(max-width: 800px)
+  {
+    aside {
+      position: relative;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: auto;
+      border-top: 1px solid #eee;
+      border-right: 0px none;
+      overflow: hidden;
+    }
+    aside nav {
+      margin-left: 4em;
+      margin-bottom: 3em;
+      margin-top: 1.59em;
+      float: none;
+    }
+    #main {
+      margin-left: 2em;
+      padding-bottom: 1.59em;
+    }
+    aside li.current, aside li ul {
+      border-right: 0px none;
+    }
+  }
+
+  /* Use less generous margins for very narrow viewports. */
+  @media(max-width: 650px)
+  {
+    #main {
+      margin-left: 0;
+      margin-right: 0;
+    }
+    aside nav {
+      margin-left: 2em;
+      margin-bottom: 1.59em;
+    }
+  }
+
+  @media(max-width: 450px)
+  {
+    #main {
+      padding-left: 1.59em;
+      padding-right: 1.59em;
+    }
+    aside nav {
+      margin-left: 1.59em;
+    }
+  }
+  </style>
 </head>
-
-<body class="wy-body-for-nav" role="document">
-
-  <div class="wy-grid-for-nav">
-
-    
-    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
-      <div class="wy-side-nav-search">
-        <a href="." class="icon icon-home"> Tako</a>
-        <div role="search">
-  <form id ="rtd-search-form" class="wy-form" action="./search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
-  </form>
-</div>
-      </div>
-
-      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-	<ul class="current">
-	  
-          
-            <li class="toctree-l1 current">
-		
-    <a class="current" href=".">Overview</a>
-    <ul class="subnav">
-            
-    <li class="toctree-l2"><a href="#tako">Tako</a></li>
-    
-        <ul>
-        
-            <li><a class="toctree-l3" href="#user-guide">User Guide</a></li>
-        
-            <li><a class="toctree-l3" href="#reference">Reference</a></li>
-        
-            <li><a class="toctree-l3" href="#internals">Internals</a></li>
-        
-        </ul>
-    
-
-    </ul>
-	    </li>
-          
-            <li class="toctree-l1">
-		
-    <span class="caption-text">User Guide</span>
-    <ul class="subnav">
-                <li class="">
-                    
-    <a class="" href="downloading-images/">Downloading Images</a>
-                </li>
-                <li class="">
-                    
-    <a class="" href="distributing-images/">Distributing Images</a>
-                </li>
-                <li class="">
-                    
-    <a class="" href="configuration/">Configuration</a>
-                </li>
-                <li class="">
-                    
-    <a class="" href="versions/">Versions</a>
-                </li>
-    </ul>
-	    </li>
-          
-            <li class="toctree-l1">
-		
-    <span class="caption-text">Reference</span>
-    <ul class="subnav">
-                <li class="">
-                    
-    <a class="" href="tako-fetch/">tako fetch</a>
-                </li>
-                <li class="">
-                    
-    <a class="" href="tako-store/">tako store</a>
-                </li>
-                <li class="">
-                    
-    <a class="" href="tako-gen-key/">tako gen-key</a>
-                </li>
-    </ul>
-	    </li>
-          
-            <li class="toctree-l1">
-		
-    <span class="caption-text">Internals</span>
-    <ul class="subnav">
-                <li class="">
-                    
-    <a class="" href="manifest-format/">Manifest Format</a>
-                </li>
-    </ul>
-	    </li>
-          
-        </ul>
-      </div>
-      &nbsp;
-    </nav>
-
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
-        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+<body>
+  <div id="content">
+    <div id="main">
+      <nav id="breadcrumbs">
         <a href=".">Tako</a>
+        <a id="repo-link" href="https://github.com/ruuda/tako/">GitHub</a>
       </nav>
-
-      
-      <div class="wy-nav-content">
-        <div class="rst-content">
-          <div role="navigation" aria-label="breadcrumbs navigation">
-  <ul class="wy-breadcrumbs">
-    <li><a href=".">Docs</a> &raquo;</li>
-    
-      
-    
-    <li>Overview</li>
-    <li class="wy-breadcrumbs-aside">
-      
-        <a href="https://github.com/ruuda/tako/edit/master/docs/index.md"
-          class="icon icon-github"> Edit on GitHub</a>
-      
-    </li>
-  </ul>
-  <hr/>
-</div>
-          <div role="main">
-            <div class="section">
-              
-                <h1 id="tako">Tako</h1>
-<p>Tako securely downloads and updates binary files such as container images. It
-is intended as a lightweight delivery mechanism for signed versioned images.
-Through version bounds Tako enables automatic security updates while avoiding
-breaking changes. Ed25519 signatures ensure that images come from a trusted
-source.</p>
-<p>Tako is a short-lived process that downloads images specified in its
-configuration and then exits. Optionally Tako restarts configured systemd units
-when it downloads a newer version of an image. Tako runs on two occasions:</p>
+      <section>
+        <h1 id="custom-docs-theme">Custom Docs Theme</h1>
+<p>This directory contains a custom <a href="https://www.mkdocs.org/">MkDocs</a> theme. I prototyped it with
+the documentation for <a href="https://github.com/ruuda/tako">Tako</a>, but I intend to deploy it more widely, also
+for <a href="https://github.com/ruuda/pris">Pris</a> and <a href="https://github.com/ruuda/noblit">Noblit</a>. It is not customizable: it supports
+everything I need, and nothing more.</p>
+<h2 id="features">Features</h2>
 <ul>
-<li>Periodically, triggered by a systemd timer. Tako checks for new compatible
-   versions of a configured image. If one exists, Tako downloads it and restarts
-   the systemd unit that uses the image.</li>
-<li>As a dependency of the systemd unit that uses the image, to provision a clean
-   system with an initial image.</li>
+<li>Responsive design</li>
+<li>Zero javascript</li>
 </ul>
-<p>Tako is a single binary with minimal dependencies (libc and libcurl only),
-because Tako is used to bootstrap more complex applications. Installing Tako is
-as easy as copying over the binary.</p>
-<h2 id="user-guide">User Guide</h2>
-<ul>
-<li><a href="downloading-images/">Downloading Images</a></li>
-<li><a href="distributing-images/">Distributing Images</a></li>
-<li><a href="configuration/">Configuration</a></li>
-<li><a href="versions/">Versions</a></li>
-</ul>
-<h2 id="reference">Reference</h2>
-<ul>
-<li><a href="tako-fetch/"><code>tako fetch</code></a></li>
-<li><a href="tako-store/"><code>tako store</code></a></li>
-<li><a href="tako-gen-key/"><code>tako gen-key</code></a></li>
-</ul>
-<h2 id="internals">Internals</h2>
-<ul>
-<li><a href="manifest-format/">Manifest Format</a></li>
-</ul>
-              
-            </div>
-          </div>
-          <footer>
-  
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="downloading-images/" class="btn btn-neutral float-right" title="Downloading Images">Next <span class="icon icon-circle-arrow-right"></span></a>
-      
-      
-    </div>
-  
-
-  <hr/>
-
-  <div role="contentinfo">
-    <!-- Copyright etc -->
-    
-  </div>
-
-  Built with <a href="http://www.mkdocs.org">MkDocs</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
-</footer>
-      
-        </div>
+<h2 id="license">License</h2>
+<p>The theme is licensed under the <a href="https://www.apache.org/licenses/LICENSE-2.0">Apache 2.0</a> license. In the generated
+documentation, it is fine to just link to this readme.</p>
+      </section>
       </div>
-
-    </section>
-
+    <aside>
+      <nav>
+        <ul>
+        <li class="toc-section"><a href=".">Overview</a></li>
+          <li class="toc-section"><a href=".">User Guide</a></li>
+          <li class="toc-chapter"><a href="downloading-images/">Downloading Images</a></li>
+            <li class="toc-chapter"><a href="distributing-images/">Distributing Images</a></li>
+            <li class="toc-chapter"><a href="configuration/">Configuration</a></li>
+            <li class="toc-chapter"><a href="versions/">Versions</a></li>
+            <li class="toc-section"><a href=".">Reference</a></li>
+          <li class="toc-chapter"><a href="tako-fetch/">tako fetch</a></li>
+            <li class="toc-chapter"><a href="tako-store/">tako store</a></li>
+            <li class="toc-chapter"><a href="tako-gen-key/">tako gen-key</a></li>
+            <li class="toc-section"><a href=".">Internals</a></li>
+          <li class="toc-chapter"><a href="manifest-format/">Manifest Format</a></li>
+            </ul>
+      </nav>
+    </aside>
   </div>
-
-  <div class="rst-versions" role="note" style="cursor: pointer">
-    <span class="rst-current-version" data-toggle="rst-current-version">
-      
-          <a href="https://github.com/ruuda/tako/" class="fa fa-github" style="float: left; color: #fcfcfc"> GitHub</a>
-      
-      
-      
-        <span style="margin-left: 15px"><a href="downloading-images/" style="color: #fcfcfc">Next &raquo;</a></span>
-      
-    </span>
-</div>
-    <script>var base_url = '.';</script>
-    <script src="./js/theme.js"></script>
-      <script src="./search/require.js"></script>
-      <script src="./search/search.js"></script>
-
 </body>
 </html>
-
-<!--
-MkDocs version : 0.17.4
-Build Date UTC : 2018-06-23 20:55:23
--->

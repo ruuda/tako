@@ -1,48 +1,48 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
-     <loc>/</loc>
-     <lastmod>2018-06-23</lastmod>
+     <loc>None</loc>
+     <lastmod>2019-03-10</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
-     <loc>/downloading-images/</loc>
-     <lastmod>2018-06-23</lastmod>
+     <loc>None</loc>
+     <lastmod>2019-03-10</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
-     <loc>/distributing-images/</loc>
-     <lastmod>2018-06-23</lastmod>
+     <loc>None</loc>
+     <lastmod>2019-03-10</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
-     <loc>/configuration/</loc>
-     <lastmod>2018-06-23</lastmod>
+     <loc>None</loc>
+     <lastmod>2019-03-10</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
-     <loc>/versions/</loc>
-     <lastmod>2018-06-23</lastmod>
+     <loc>None</loc>
+     <lastmod>2019-03-10</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
-     <loc>/tako-fetch/</loc>
-     <lastmod>2018-06-23</lastmod>
+     <loc>None</loc>
+     <lastmod>2019-03-10</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
-     <loc>/tako-store/</loc>
-     <lastmod>2018-06-23</lastmod>
+     <loc>None</loc>
+     <lastmod>2019-03-10</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
-     <loc>/tako-gen-key/</loc>
-     <lastmod>2018-06-23</lastmod>
+     <loc>None</loc>
+     <lastmod>2019-03-10</lastmod>
      <changefreq>daily</changefreq>
     </url>
     <url>
-     <loc>/manifest-format/</loc>
-     <lastmod>2018-06-23</lastmod>
+     <loc>None</loc>
+     <lastmod>2019-03-10</lastmod>
      <changefreq>daily</changefreq>
     </url>
 </urlset>
