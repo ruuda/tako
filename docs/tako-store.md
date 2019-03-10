@@ -1,3 +1,5 @@
+mono_title: true
+
 # tako store
 
 Add a new image version to a server directory.
