@@ -3,14 +3,54 @@
 <html>
 <head>
   <!--
-    Documentation theme copyright 2019 Ruud van Asseldonk.
-    See https://github.com/ruuda/tako/tree/master/theme.
+    Kilsbergen MkDocs theme copyright 2019 Ruud van Asseldonk.
+    Licensed under the Apache 2.0 license.
+    See https://github.com/ruuda/kilsbergen.
   -->
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>tako store — Tako</title>
-  <link href="https://fonts.googleapis.com/css?family=Roboto+Mono:400|Roboto:400,500,700" rel="stylesheet">
+  <link href="https://rsms.me/inter/inter.css?v=3.3" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css?family=Roboto+Mono:400,500" rel="stylesheet">
   <style>
+  /* The Inter font family, see https://rsms.me/inter.
+     https://rsms.me/inter/#faq-cdn suggests that linking these files directly is fine.
+  */
+  @font-face {
+    font-family: Inter;
+    font-style:  normal;
+    font-weight: 400;
+    src: url("https://rsms.me/inter/font-files/Inter-Regular.woff2?v=3.3") format("woff2"),
+         url("https://rsms.me/inter/font-files/Inter-Regular.woff?v=3.3") format("woff");
+  }
+  @font-face {
+    font-family: Inter;
+    font-style:  italic;
+    font-weight: 400;
+    src: url("https://rsms.me/inter/font-files/Inter-Italic.woff2?v=3.3") format("woff2"),
+         url("https://rsms.me/inter/font-files/Inter-Italic.woff?v=3.3") format("woff");
+  }
+  @font-face {
+    font-family: Inter;
+    font-style:  normal;
+    font-weight: 500;
+    src: url("https://rsms.me/inter/font-files/Inter-Medium.woff2?v=3.3") format("woff2"),
+         url("https://rsms.me/inter/font-files/Inter-Medium.woff?v=3.3") format("woff");
+  }
+  @font-face {
+    font-family: Inter;
+    font-style:  normal;
+    font-weight: 600;
+    src: url("https://rsms.me/inter/font-files/Inter-SemiBold.woff2?v=3.3") format("woff2"),
+         url("https://rsms.me/inter/font-files/Inter-SemiBold.woff?v=3.3") format("woff");
+  }
+  @font-face {
+    font-family: Inter;
+    font-style:  normal;
+    font-weight: 700;
+    src: url("https://rsms.me/inter/font-files/Inter-Bold.woff2?v=3.3") format("woff2"),
+         url("https://rsms.me/inter/font-files/Inter-Bold.woff?v=3.3") format("woff");
+  }
   /* Modular scale with exponent 1.26, about 2^(1/3), so we get 2em in there,
      which is convenient. 1.26 is also close to (golden ratio)^0.5.
      0.63em
@@ -20,9 +60,11 @@
      1.59em
      2.00em
   */
-  * { margin: 0; padding: 0; }
+  * { margin: 0; padding: 0; border-spacing: 0; }
   html {
-    font-family: 'Roboto', sans-serif;
+    font-family: Inter, Roboto, sans-serif;
+    /* Turn on character variant 8 for Inter, which puts serifs on the uppercase I. */
+    font-feature-settings: 'cv08' 1;
     font-size: 16px;
     line-height: 1.59em;
     background-color: #fff;
@@ -58,11 +100,11 @@
     word-spacing: 0;
     color: #78a;
   }
-  section {
+  article {
     margin-top: 1.3rem;
   }
   h1, h2, h3 {
-    font-weight: 500;
+    font-weight: 600;
     font-size: 1rem;
     color: #444;
     margin-bottom: 1.59rem;
@@ -84,10 +126,18 @@
   .mono {
     font-family: 'Roboto Mono', monospace;
   }
+  abbr {
+    text-transform: uppercase;
+    /* Downsize so caps are x-height, and compensate weight loss. */
+    font-size: 0.78rem;
+    font-weight: 500;
+    letter-spacing: 0.05rem;
+  }
   p > code,
   a > code,
   h3 > code,
-  li > code {
+  li > code,
+  td > code {
     background-color: #f0f0f0;
     padding: 0.13rem;
     padding-left: 0.3rem;
@@ -106,7 +156,7 @@
     color: #36d;
     text-decoration: none;
   }
-  p, ul, pre {
+  p, ul, ol, pre, table {
     /* Same space as line height, leave exactly one line blank. */
     margin-bottom: 1.59em;
   }
@@ -122,10 +172,20 @@
     margin-right: 1.41rem;
     color: #555;
   }
-  ul {
+  ul, ol {
     list-style-type: none;
+    counter-reset: item;
   }
-  #main li:before {
+  table {
+    font-variant-numeric: tabular-nums;
+  }
+  th, td {
+    padding-right: 2rem;
+  }
+  th {
+    text-align: left;
+  }
+  #main ul li:before {
     color: #555;
     content: '\2022';
     display: inline-block;
@@ -133,8 +193,20 @@
     margin-left: -0.9rem;
     width: 0.9rem;
   }
-  #main li {
+  #main ul li {
     margin-left: 0.87rem;
+  }
+  #main ol li:before {
+    content: counter(item);
+    display: inline-block;
+    font-weight: 700;
+    width: 0.8rem;
+    margin-left: -1.6rem;
+    padding-right: 0.8rem;
+  }
+  #main ol li {
+    margin-left: 1.6rem;
+    counter-increment: item;
   }
   #nav-prev-next {
     margin-top: 3.18rem;
@@ -169,6 +241,7 @@
   }
   aside nav {
     margin-top: 8.4rem;
+    margin-bottom: 3rem;
     width: 14rem;
     float: right;
     /* Put the active chapter border over the sidebar border. */
@@ -201,7 +274,11 @@
     margin-left: -1em;
   }
   aside .current a {
-    color: #557;
+    font-weight: 600;
+  }
+  aside .current.mono a, h3 > code {
+    /* Roboto Mono 500 is about as heavy as Inter semibold (600). */
+    font-weight: 500;
   }
   aside li.toc-heading {
     padding-left: 1em;
@@ -227,7 +304,6 @@
     }
     aside nav {
       margin-left: 4em;
-      margin-bottom: 3em;
       margin-top: 1.59em;
       float: none;
     }
@@ -271,10 +347,10 @@
       <nav id="breadcrumbs">
         <a href="..">Tako</a>
         › <a href="..">Reference</a>
-  › <a href="./">tako store</a>
+  › <a href="./" class="mono">tako store</a>
   <a id="repo-link" href="https://github.com/ruuda/tako/">GitHub</a>
       </nav>
-      <section>
+      <article>
         <h1 id="tako-store">tako store</h1>
 <p>Add a new image version to a server directory.</p>
 <h2 id="synopsis">Synopsis</h2>
@@ -308,17 +384,17 @@ can be generated with <a href="../tako-gen-key/"><code>tako gen-key</code></a>.<
 <p>Specifies the server directory. <code>&lt;dir&gt;</code> must exist. This must be a path on the
 file system, uris are not supported. Tako will create <code>&lt;dir&gt;/manifest</code> and
 <code>&lt;dir&gt;/store</code> if they do not exist yet.</p>
-      </section>
+      </article>
       <nav id="nav-prev-next">
         <a id="nav-prev" href="../tako-fetch/" title="tako fetch">Previous</a>
-        <a id="nav-next" href="../tako-gen-key/" title="tako gen-key"/>Next</a>
+        <a id="nav-next" href="../tako-gen-key/" title="tako gen-key">Next</a>
         </nav>
       </div>
     <aside>
       <nav>
         <ul>
         <li class="toc-section"><a href="..">Overview</a></li>
-          <li class="toc-section"><a href="..">User Guide</a></li>
+          <li class="toc-section"><a href="../downloading-images/">User Guide</a></li>
           <li class="toc-chapter
               "><a href="../downloading-images/">Downloading Images</a></li>
             <li class="toc-chapter
@@ -327,19 +403,19 @@ file system, uris are not supported. Tako will create <code>&lt;dir&gt;/manifest
               "><a href="../configuration/">Configuration</a></li>
             <li class="toc-chapter
               "><a href="../versions/">Versions</a></li>
-            <li class="toc-section"><a href="..">Reference</a></li>
+            <li class="toc-section"><a href="../tako-fetch/">Reference</a></li>
           <li class="toc-chapter
                mono"><a href="../tako-fetch/">tako fetch</a></li>
             <li class="toc-chapter
                mono current"><a href="./">tako store</a></li>
             <li><ul>
-              <li class="toc-heading"><a href="tako-store/../#synopsis">Synopsis</a></li>
-              <li class="toc-heading"><a href="tako-store/../#description">Description</a></li>
-              <li class="toc-heading"><a href="tako-store/../#options">Options</a></li>
-              </ul></li>
-            <li class="toc-chapter
+                <li class="toc-heading"><a href="#synopsis">Synopsis</a></li>
+                <li class="toc-heading"><a href="#description">Description</a></li>
+                <li class="toc-heading"><a href="#options">Options</a></li>
+                </ul></li>
+               <li class="toc-chapter
                mono"><a href="../tako-gen-key/">tako gen-key</a></li>
-            <li class="toc-section"><a href="..">Internals</a></li>
+            <li class="toc-section"><a href="../manifest-format/">Internals</a></li>
           <li class="toc-chapter
               "><a href="../manifest-format/">Manifest Format</a></li>
             </ul>
