@@ -1,5 +1,3 @@
-mono_title: true
-
 # tako gen-key
 
 Generate a key pair for signing manifests.

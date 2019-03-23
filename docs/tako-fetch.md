@@ -1,5 +1,3 @@
-mono_title: true
-
 # tako fetch
 
 Download or update an image.
