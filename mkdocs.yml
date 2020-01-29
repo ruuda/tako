@@ -3,7 +3,7 @@ repo_url: https://github.com/ruuda/tako
 strict: true
 theme:
   name: null
-  custom_dir: theme
+  custom_dir: docs/theme
 nav:
   - Overview: index.md
   - User Guide:
