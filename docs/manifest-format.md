@@ -16,8 +16,9 @@ the hexadecimally encoded SHA256 of the image. This makes it easy to use
 After the image versions is again a blank line, followed by the base64-encoded
 Ed25519 signature of all of the preceding content (including newlines).
 
-Newlines are a single line feed (`\n`). Version numbers should be ascii. Hence
-the entire file is valid ascii, and also valid UTF-8.
+Newlines are a single line feed (U+000A). Version numbers should be
+<abbr>ASCII</abbr>. Hence the entire file is valid <abbr>ASCII</abbr>, and also
+valid <abbr>UTF-8</abbr>.
 
 ## Example
 
@@ -32,20 +33,21 @@ the entire file is valid ascii, and also valid UTF-8.
 ## Rationale
 
 The manifest format is inspired by the well-established practice of distributing
-a GPG-signed `SHASUMS` file.
+a <abbr>GPG</abbr>-signed `SHASUMS` file.
 
 * We include a version line, so future versions of Tako can still read older
   manifests.
 * The signature is embedded, rather than external, to avoid race conditions when
   uploading a new manifest to the server. One would still need to upload new
   images before uploading a new manifest.
-* The signature is an Ed25519 signature rather than a GPG signature, because GPG
-  involves a stateful trust store that is difficult to provision in an automated
-  way. In practice people use GPG only for signature verification. For
-  authentication, rather than relying on GPG’s web of trust, people announce
-  the fingerprint of their key in a trusted location (Twitter, Github, an https-
-  protected website). Ed25519 public keys are small enough that the full public
-  key can be announced in places where we would normally announce a fingerprint.
+* The signature is an Ed25519 signature rather than a <abbr>GPG</abbr> signature,
+  because <abbr>GPG</abbr> involves a stateful trust store that is difficult to
+  provision in an automated way. In practice people use <abbr>GPG</abbr> only
+  for signature verification. For authentication, rather than relying on
+  <abbr>GPG</abbr>’s web of trust, people announce the fingerprint of their key
+  in a trusted location (Twitter, Github, an https-protected website). Ed25519
+  public keys are small enough that the full public key can be announced in
+  places where we would normally announce a fingerprint.
 * The manifest does not include timestamps, to ensure that it is reproducible.
   Timestamps belong in a changelog or audit log.
 * Entries should never be removed from the manifest. There are reasons to stop

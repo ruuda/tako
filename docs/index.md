@@ -29,9 +29,9 @@ as easy as copying over the binary.
 
 ## Reference
 
- * [`tako fetch`](tako-fetch.md)
- * [`tako store`](tako-store.md)
- * [`tako gen-key`](tako-gen-key.md)
+ * [tako fetch](tako-fetch.md)
+ * [tako store](tako-store.md)
+ * [tako gen-key](tako-gen-key.md)
 
 ## Internals
 
