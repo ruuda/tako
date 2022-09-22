@@ -13,14 +13,13 @@ use std::io::{BufRead, BufWriter, Write};
 use std::os::unix;
 use std::path::Path;
 
-use sodiumoxide::crypto::hash::sha256;
-
 use config::Config;
 use curl;
 use error::{Error, Result};
 use manifest;
 use manifest::Manifest;
 use util;
+use util::Digest;
 
 fn load_config(config_fname: &str) -> Result<Config> {
     let f = fs::File::open(config_fname)?;
@@ -72,9 +71,11 @@ fn fetch_image(
     uri: &str,
     target_fname: &Path,
     len: u64,
-    digest: &sha256::Digest,
+    digest: &Digest,
     curl_handle: &mut curl::Handle
 ) -> Result<()> {
+    use sha2::Digest;
+
     // Download to store/<hexdigest>.new. Then later rename the file to its
     // final path. This ensures that when the program crashes or is killed mid-
     // download, next time we will start the download again immediately. Also,
@@ -85,7 +86,7 @@ fn fetch_image(
     // In case of error, delete the temp file.
     let guard = util::FileGuard::new(&tmp_fname);
 
-    let mut ctx = sha256::State::new();
+    let mut ctx = sha2::Sha256::new();
     {
         let ctx_ref = &mut ctx;
         let mut f = BufWriter::new(fs::File::create(&tmp_fname)?);
@@ -105,7 +106,7 @@ fn fetch_image(
             return Err(Error::InvalidSize)
         }
     }
-    let actual_digest = ctx.finalize();
+    let actual_digest = util::Digest::new(ctx.finalize().into());
 
     let is_digest_valid = actual_digest == *digest;
 

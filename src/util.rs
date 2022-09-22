@@ -11,10 +11,9 @@ use std::fs;
 use std::io;
 use std::path::Path;
 
-use filebuffer::FileBuffer;
-use sodiumoxide::crypto::hash::sha256;
-
 use ed25519_compact::{KeyPair, PublicKey, SecretKey};
+use filebuffer::FileBuffer;
+use sha2::Sha256;
 
 use error::{Error, Result};
 use format;
@@ -32,13 +31,37 @@ pub fn append_hex(string: &mut String, bytes: &[u8]) {
     }
 }
 
+/// Sha256 digest of some input.
+///
+/// Note, the `Eq` impl is not constant time. This is not an issue for Tako,
+/// because verification of the digest happens client-side; there is no server
+/// logic.
+#[derive(Debug, Clone, Eq, PartialEq)]
+pub struct Digest([u8; 32]);
+
+impl Digest {
+    pub fn new(bytes: [u8; 32]) -> Digest {
+        Digest(bytes)
+    }
+
+    pub fn as_ref(&self) -> &[u8] {
+        &self.0[..]
+    }
+
+    #[cfg(test)]
+    pub fn as_mut(&mut self) -> &mut [u8] {
+        &mut self.0[..]
+    }
+}
+
 /// Compute the SHA256 digest of a file. Mmaps the file.
-pub fn sha256sum(path: &Path) -> Result<sha256::Digest> {
+pub fn sha256sum(path: &Path) -> Result<Digest> {
+    use sha2::Digest;
     // Mmap the file when computing its digest. This way we can compute the
     // digest of files that don't fit in memory, without having to care about
     // streaming manually. Simple and fast.
     let fbuffer = FileBuffer::open(path)?;
-    Ok(sha256::hash(&fbuffer))
+    Ok(Digest(Sha256::digest(&fbuffer).into()))
 }
 
 /// Parse key pair as formatted by `format_key_pair()`.
