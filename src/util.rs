@@ -13,7 +13,8 @@ use std::path::Path;
 
 use filebuffer::FileBuffer;
 use sodiumoxide::crypto::hash::sha256;
-use sodiumoxide::crypto::sign::ed25519;
+
+use ed25519_compact::{KeyPair, PublicKey, SecretKey};
 
 use error::{Error, Result};
 use format;
@@ -41,7 +42,7 @@ pub fn sha256sum(path: &Path) -> Result<sha256::Digest> {
 }
 
 /// Parse key pair as formatted by `format_key_pair()`.
-pub fn parse_key_pair(pair_base64: &str) -> Result<(ed25519::PublicKey, ed25519::SecretKey)> {
+pub fn parse_key_pair(pair_base64: &str) -> Result<KeyPair> {
     // To stress that the secret key is secret, we always prefix it with
     // "SECRET+", to hopefully make users think twice before pasting that key
     // into a terminal with Bash history enabled, or before saving it to a plain
@@ -61,16 +62,17 @@ pub fn parse_key_pair(pair_base64: &str) -> Result<(ed25519::PublicKey, ed25519:
     }
 
     let err = Error::InvalidSecretKeyData;
-    let secret_key = ed25519::SecretKey::from_slice(&pair_bytes[..64]).ok_or(err)?;
+    let secret_key = SecretKey::from_slice(&pair_bytes[..64]).map_err(|_| err)?;
 
     let err = Error::InvalidSecretKeyData;
-    let public_key = ed25519::PublicKey::from_slice(&pair_bytes[64..]).ok_or(err)?;
+    let public_key = PublicKey::from_slice(&pair_bytes[64..]).map_err(|_| err)?;
 
-    Ok((public_key, secret_key))
+    let keypair = KeyPair { pk: public_key, sk: secret_key };
+    Ok(keypair)
 }
 
 /// Format key pair as base64 string with "SECRET+" prefix.
-pub fn format_key_pair(public_key: &ed25519::PublicKey, secret_key: &ed25519::SecretKey) -> String {
+pub fn format_key_pair(key_pair: &KeyPair) -> String {
     // We prefix the secret key with "SECRET+" everywhere to stress its secrecy;
     // we expect that same prefix when reading it back. Use "+" rather than ":"
     // as separator, because Gnome Terminal selects the entire line on double
@@ -78,8 +80,8 @@ pub fn format_key_pair(public_key: &ed25519::PublicKey, secret_key: &ed25519::Se
     // a "SECRET:" prefix is just a label and not part of the key, whereas with
     // a "+" as separator it looks more like one thing.
     let mut pair_bytes = Vec::with_capacity(96);
-    pair_bytes.extend_from_slice(secret_key.0.as_ref());
-    pair_bytes.extend_from_slice(public_key.0.as_ref());
+    pair_bytes.extend_from_slice(&key_pair.sk[..]);
+    pair_bytes.extend_from_slice(&key_pair.pk[..]);
 
     let mut result = String::with_capacity(128 + 7);
     result.push_str("SECRET+");
@@ -136,7 +138,7 @@ impl<'a> Drop for FileGuard<'a> {
 
 #[cfg(test)]
 mod test {
-    use sodiumoxide::crypto::sign::ed25519;
+    use ed25519_compact::KeyPair;
 
     use error::Error;
     use super::{format_key_pair, parse_key_pair};
@@ -144,11 +146,10 @@ mod test {
     #[test]
     fn format_key_pair_then_parse_key_pair_is_identity() {
         for _ in 0..1024 {
-            let (pk_in, sk_in) = ed25519::gen_keypair();
-            let formatted = format_key_pair(&pk_in, &sk_in);
-            let (pk_out, sk_out) = parse_key_pair(&formatted).unwrap();
-            assert_eq!(pk_in, pk_out);
-            assert_eq!(sk_in, sk_out);
+            let key_pair_in = KeyPair::generate();
+            let formatted = format_key_pair(&key_pair_in);
+            let key_pair_out = parse_key_pair(&formatted).unwrap();
+            assert_eq!(key_pair_in, key_pair_out);
         }
     }
 

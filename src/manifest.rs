@@ -15,7 +15,7 @@ use std::path::{Path, PathBuf};
 use std::str;
 
 use sodiumoxide::crypto::hash::sha256;
-use sodiumoxide::crypto::sign::ed25519;
+use ed25519_compact::{PublicKey, SecretKey, Signature};
 
 use error::{Error, Result};
 use format;
@@ -157,7 +157,7 @@ impl Manifest {
         }
     }
 
-    pub fn parse(bytes: &[u8], public_key: &ed25519::PublicKey) -> Result<Manifest> {
+    pub fn parse(bytes: &[u8], public_key: &PublicKey) -> Result<Manifest> {
         let mut lines = bytes.split(|b| *b == b'\n');
         let mut entries = Vec::new();
 
@@ -203,9 +203,9 @@ impl Manifest {
         // The signature and newline are 89 bytes. Everything before that is
         // included in the signature.
         let message = &bytes[..bytes.len() - 89];
-        let signature = ed25519::Signature(signature_bytes);
+        let signature = Signature::new(signature_bytes);
 
-        if !ed25519::verify_detached(&signature, message, public_key) {
+        if public_key.verify(message, &signature).is_err() {
             return Err(Error::InvalidSignature)
         }
 
@@ -238,7 +238,7 @@ impl Manifest {
     }
 
     /// Print the manifest as a string and sign it, the inverse of `parse`.
-    pub fn serialize(&self, secret_key: &ed25519::SecretKey) -> String {
+    pub fn serialize(&self, secret_key: &SecretKey) -> String {
         use std::fmt::Write;
 
         // Premature optimization: estimate the output size, so we have to do
@@ -260,7 +260,8 @@ impl Manifest {
 
         out.push('\n');
 
-        let signature = ed25519::sign_detached(out.as_bytes(), secret_key);
+        let noise = None;
+        let signature = secret_key.sign(out.as_bytes(), noise);
 
         format::append_base64(&mut out, signature.as_ref());
         out.push('\n');
@@ -272,7 +273,7 @@ impl Manifest {
     ///
     /// If the manifest exists, it is parsed and returned. If it does not exist,
     /// None is returned, rather than an Err.
-    pub fn load_local(dir: &Path, public_key: &ed25519::PublicKey) -> Result<Option<Manifest>> {
+    pub fn load_local(dir: &Path, public_key: &PublicKey) -> Result<Option<Manifest>> {
         // Open the current manifest. If it does not exist that is not an error.
         let mut path = PathBuf::from(dir);
         path.push("manifest");
@@ -347,13 +348,13 @@ pub fn store_local(path: &Path, bytes: &[u8]) -> Result<()> {
 #[cfg(test)]
 mod test {
     use sodiumoxide::crypto::hash::sha256;
-    use sodiumoxide::crypto::sign::ed25519;
+    use ed25519_compact::{KeyPair, PublicKey, Seed, SecretKey};
 
     use error::Error;
     use super::{Entry, Manifest, parse_entry};
     use version::Version;
 
-    fn get_test_key_pair() -> (ed25519::PublicKey, ed25519::SecretKey) {
+    fn get_test_key_pair() -> KeyPair {
         // Produce the keypair from the same 32 bytes each time in the tests,
         // so they are deterministic. From this seed, the following key is
         // generated:
@@ -361,18 +362,16 @@ mod test {
         //             hZmWXQPbwnZ+Ihe9Y9t5k/vCRqr50HnkaXbKyKCX2ZAfb2
         //             ZdA9vCdn4iF71j23mT+8JGqvnQeeRpdsrIoJfZkB9vZ
         // Public key: l0D28J2fiIXvWPbeZP7wkaq+dB55Gl2ysigl9mQH29k=
-        let seed = ed25519::Seed(*b"test-key-very-security-such-safe");
-        ed25519::keypair_from_seed(&seed)
+        let seed = Seed::new(*b"test-key-very-security-such-safe");
+        KeyPair::from_seed(seed)
     }
 
-    fn get_test_public_key() -> ed25519::PublicKey {
-        let (pk, _sk) = get_test_key_pair();
-        pk
+    fn get_test_public_key() -> PublicKey {
+        get_test_key_pair().pk
     }
 
-    fn get_test_secret_key() -> ed25519::SecretKey {
-        let (_pk, sk) = get_test_key_pair();
-        sk
+    fn get_test_secret_key() -> SecretKey {
+        get_test_key_pair().sk
     }
 
     /// A sequence of 32 bytes that I don't want to repeat everywhere.

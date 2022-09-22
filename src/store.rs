@@ -37,9 +37,9 @@ pub fn store(store: Store) -> Result<()> {
         (None, None) => unreachable!("Should have been validated elsewhere."),
     };
 
-    let (public_key, secret_key) = util::parse_key_pair(&key_pair_base64)?;
+    let key_pair = util::parse_key_pair(&key_pair_base64)?;
 
-    let mut manifest = match Manifest::load_local(&store.output_path, &public_key)? {
+    let mut manifest = match Manifest::load_local(&store.output_path, &key_pair.pk)? {
         Some(m) => m,
         None => Manifest::new(),
     };
@@ -87,7 +87,7 @@ pub fn store(store: Store) -> Result<()> {
 
     // And finally store the new manifest. Write to a temporary file, then swap
     // it into place.
-    let manifest_string = manifest.serialize(&secret_key);
+    let manifest_string = manifest.serialize(&key_pair.sk);
     manifest::store_local(&store.output_path, manifest_string.as_bytes())?;
 
     Ok(())

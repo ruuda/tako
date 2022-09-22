@@ -5,13 +5,14 @@
 // you may not use this file except in compliance with the License.
 // A copy of the License has been included in the root of the repository.
 
+extern crate ed25519_compact;
 extern crate filebuffer;
 extern crate sodiumoxide;
 
 use std::process;
 use std::env;
 
-use sodiumoxide::crypto::sign::ed25519;
+use ed25519_compact::KeyPair;
 
 mod cli;
 mod config;
@@ -52,13 +53,13 @@ fn run_store(store: cli::Store) {
 }
 
 fn run_gen_key() {
-    let (public_key, secret_key) = ed25519::gen_keypair();
+    let key_pair = KeyPair::generate();
 
     // There is no particular reason to encode these as base64, apart from that
     // it is easy to deal with in config files (for the public key), and it can
     // be safely printed to stdout and copied from there.
-    let pair_b64 = util::format_key_pair(&public_key, &secret_key);
-    let public_key_b64 = format::encode_base64(public_key.as_ref());
+    let pair_b64 = util::format_key_pair(&key_pair);
+    let public_key_b64 = format::encode_base64(key_pair.pk.as_ref());
 
     // Print the private key to stdout, rather than writing it to a file. This
     // means that at least the sensitive data is not written to disk. (It is

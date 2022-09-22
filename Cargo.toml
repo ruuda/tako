@@ -11,6 +11,11 @@ authors = [
 [dependencies]
 filebuffer = "0.4.0"
 
+[dependencies.ed25519-compact]
+version = "1.0.12"
+default-features = false
+features = ["self-verify", "std", "random", "opt_size"]
+
 # Disable "serde" feature from sodiumoxide; we don't use it,
 # so we can avoid the dependency.
 [dependencies.sodiumoxide]

@@ -9,7 +9,7 @@
 
 use std::path::PathBuf;
 
-use sodiumoxide::crypto::sign::ed25519;
+use ed25519_compact::PublicKey;
 
 use error::{Error, Result};
 use format;
@@ -18,7 +18,7 @@ use version::Version;
 #[derive(Debug)]
 pub struct Config {
     pub origin: String,
-    pub public_key: ed25519::PublicKey,
+    pub public_key: PublicKey,
     pub version: Version,
     pub destination: PathBuf,
     pub restart_units: Vec<String>,
@@ -106,7 +106,7 @@ impl Config {
                 )),
             },
             public_key: match public_key {
-                Some(k) => ed25519::PublicKey(k),
+                Some(k) => PublicKey::new(k),
                 None => return Err(Error::IncompleteConfig(
                     "Public key not set. Expected 'PublicKey='-line."
                 )),
@@ -148,7 +148,7 @@ mod test {
         ];
         let config = Config::parse(&config_lines).unwrap();
         assert_eq!(&config.origin[..], "https://images.example.com/app-foo");
-        assert_eq!(config.public_key.0[..4], [0xf3, 0xea, 0xf9, 0x0c]);
+        assert_eq!(&config.public_key[..4], [0xf3, 0xea, 0xf9, 0x0c]);
         assert_eq!(config.destination.as_path(), Path::new("/var/lib/images/app-foo"));
         assert_eq!(config.version, Version::from("*"));
     }
