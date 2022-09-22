@@ -38,7 +38,7 @@ extern {
     fn curl_easy_perform(curl: *mut Curl) -> CurlCode;
 }
 
-type Handler<'a> = Box<'a + FnMut(&[u8])>;
+type Handler<'a> = Box<dyn 'a + FnMut(&[u8])>;
 
 type WriteCallback = extern "C" fn(*mut raw::c_char, usize, usize, *mut raw::c_void) -> usize;
 
