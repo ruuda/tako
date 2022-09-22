@@ -24,6 +24,5 @@ lto = true
 codegen-units = 1
 incremental = false
 
-# TODO: Enable this once we require Rust >= 1.28, where opt-level=z was stabilized.
-# Optimize for size, not speed.
-# opt-level = "z"
+# "s" produces smaller binaries than "z"
+opt-level = "s"
