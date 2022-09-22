@@ -17,14 +17,6 @@ version = "1.0.12"
 default-features = false
 features = ["self-verify", "std", "random", "opt_size"]
 
-
-# Disable "serde" feature from sodiumoxide; we don't use it,
-# so we can avoid the dependency.
-[dependencies.sodiumoxide]
-version = "0.0.16"
-default-features = false
-features = ["std"]
-
 [profile.release]
 # For the release build, optimize for size.
 panic = "abort"

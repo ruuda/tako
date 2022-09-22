@@ -7,7 +7,6 @@
 
 extern crate ed25519_compact;
 extern crate filebuffer;
-extern crate sodiumoxide;
 extern crate sha2;
 
 use std::process;

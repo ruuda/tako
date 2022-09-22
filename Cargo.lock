@@ -93,22 +93,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c0f80d65747a3e43d1596c7c5492d95d5edddaabd45a7fcdb02b95f644164966"
 
 [[package]]
-name = "libsodium-sys"
-version = "0.0.16"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fcbd1beeed8d44caa8a669ebaa697c313976e242c03cc9fb23d88bf1656f5542"
-dependencies = [
- "libc",
- "pkg-config",
-]
-
-[[package]]
-name = "pkg-config"
-version = "0.3.12"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6a52e4dbc8354505ee07e484ab07127e06d87ca6fa7f0a516a2b294e5ad5ad16"
-
-[[package]]
 name = "sha2"
 version = "0.10.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -120,23 +104,12 @@ dependencies = [
 ]
 
 [[package]]
-name = "sodiumoxide"
-version = "0.0.16"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "eb5cb2f14f9a51352ad65e59257a0a9459d5a36a3615f3d53a974c82fdaaa00a"
-dependencies = [
- "libc",
- "libsodium-sys",
-]
-
-[[package]]
 name = "tako"
 version = "0.0.0"
 dependencies = [
  "ed25519-compact",
  "filebuffer",
  "sha2",
- "sodiumoxide",
 ]
 
 [[package]]
