@@ -10,7 +10,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>tako store — Tako</title>
-  <link href="https://fonts.googleapis.com/css?family=Roboto+Mono:400,500" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css?family=Roboto+Mono:400,500,400i" rel="stylesheet">
   <style>
   /* The Inter font family, see https://rsms.me/inter.
      https://rsms.me/inter/#faq-cdn suggests that linking these files directly is fine.
@@ -110,15 +110,32 @@
     font-weight: 600;
     font-size: 1rem;
     color: #444;
+    position: relative;
   }
   h1 {
     font-size: 2rem;
     margin-bottom: 2.1rem;
+    line-height: 2.42rem;
+    margin-top: -0.35rem;
+    margin-bottom: 1.75rem;
   }
   h2 {
     font-size: 1.42rem;
     margin-top: 3.5rem;
     margin-bottom: 1.6rem;
+  }
+  .headerlink {
+    position: absolute;
+    left: -0.9em;
+    width: 1em;
+    opacity: 0.0;
+    transition: opacity 0.2s ease-in;
+  }
+  /* Don't show the link for h1, usually you only have a single h1 at the top
+     of the page, so it doesn't make much sense to add an anchor there, and with
+     the larger font size, it doesn't fit in a narrow viewport. */
+  h2:hover .headerlink, h3:hover .headerlink {
+    opacity: 1.0;
   }
   code {
     font-family: 'Roboto Mono', monospace;
@@ -148,7 +165,9 @@
   a > code,
   h3 > code,
   li > code,
-  td > code {
+  td > code,
+  dt > code,
+  dd > code {
     background-color: #f0f0f0;
     padding: 0.13rem;
     padding-left: 0.3rem;
@@ -167,7 +186,7 @@
     color: #36d;
     text-decoration: none;
   }
-  p, ul, ol, pre, table {
+  p, ul, ol, dl, pre, table {
     /* Same space as line height, leave exactly one line blank. */
     margin-bottom: 1.7rem;
   }
@@ -185,6 +204,10 @@
     margin-right: 1.41rem;
     color: #555;
   }
+  code .k { color: #36d; }
+  code .kt, code .nb { color: #d36; }
+  code .c1, code .cm { color: #d36; font-style: italic; }
+  code .s { color: #c43; }
   ul, ol {
     list-style-type: none;
     counter-reset: item;
@@ -202,6 +225,14 @@
     display: block;
     padding-top: 1em;
     padding-bottom: 1em;
+  }
+  dl {
+    display: grid;
+    grid-template-columns: 1fr 4fr;
+    grid-column-gap: 2em;
+  }
+  dl dt {
+    text-align: right;
   }
   #main ul li:before {
     color: #555;
@@ -252,6 +283,7 @@
     grid-area: 1 / 1 / 2 / 3;
     border-right: 1px solid #eee;
     background-color: #fafafa;
+    color: #78a;
   }
   aside nav {
     margin-top: 9rem;
@@ -262,7 +294,7 @@
     margin-right: -1px;
   }
   aside a {
-    color: #78a;
+    color: inherit;
   }
   aside .toc-section {
     font-weight: 700;
@@ -270,14 +302,18 @@
   aside ul {
     margin-bottom: 0;
   }
+  aside li {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
   aside li ul {
     padding-top: 0.6rem;
     padding-bottom: 1.1rem;
   }
   aside li.toc-section {
-    padding-top: 1.7rem;
+    margin-top: 1.7rem;
   }
-  aside li.toc-section a {
+  aside li.toc-section {
     color: #36d;
   }
   aside li.current, aside li ul {
@@ -285,11 +321,12 @@
     padding-left: 1em;
     margin-left: -1em;
   }
-  aside .current a {
+  aside li.toc-chapter.current {
     font-weight: 600;
   }
   aside li.toc-heading {
     padding-left: 1em;
+    padding-right: 0.3em;
   }
 
   @media(max-width: 63rem)
@@ -315,17 +352,30 @@
     aside {
       border-top: 1px solid #eee;
       border-right: 0px none;
+      padding-top: 1.7em;
     }
     aside nav {
       margin-left: 4em;
       margin-top: 1.7em;
+      margin-right: 0;
       float: none;
+      width: auto;
     }
     #main {
       padding-bottom: 1.7em;
     }
+    /* Now that the TOC is full-width, adding the border on the right to
+       highlight the active page is not as clear anymore, it can be far away.
+       The current chapter is still in boldface, but that does not work for
+       section indexes. So point a guillemet at it as well. */
     aside li.current, aside li ul {
       border-right: 0px none;
+      position: relative;
+    }
+    aside li.current:before {
+      content: '\203a';
+      position: absolute;
+      left: 0;
     }
   }
 
@@ -359,18 +409,18 @@
     <div id="main">
       <nav id="breadcrumbs">
         <a href="..">Tako</a>
-        › <a href="..">Reference</a>
-  › <a href="./">tako store</a>
-  <a id="repo-link" href="https://github.com/ruuda/tako/">GitHub</a>
+         › <a href="../tako-fetch/">Reference</a> 
+         › <a href="./">tako store</a> 
+        <a id="repo-link" href="https://github.com/ruuda/tako/">GitHub</a>
       </nav>
       <article>
-        <h1 id="tako-store">tako store</h1>
+        <h1 id="tako-store">tako store<a class="headerlink" href="#tako-store">&para;</a></h1>
 <p>Add a new image version to a server directory.</p>
-<h2 id="synopsis">Synopsis</h2>
+<h2 id="synopsis">Synopsis<a class="headerlink" href="#synopsis">&para;</a></h2>
 <pre><code>tako store [-k &lt;key&gt; | -f &lt;file&gt;] --output &lt;dir&gt; [--] &lt;image&gt; &lt;version&gt;
 tako store -h | --help
 </code></pre>
-<h2 id="description">Description</h2>
+<h2 id="description">Description<a class="headerlink" href="#description">&para;</a></h2>
 <p>This commands adds a new file to the store and updates the manifest. It computes
 the SHA256 of the <code>&lt;image&gt;</code> file and copies it into <code>&lt;dir&gt;/store</code> using the hash
 as filename. Tako then adds an entry to the manifest in <code>&lt;dir&gt;</code> that specifies
@@ -378,8 +428,9 @@ that <code>&lt;version&gt;</code> corresponds to the computed hash. Tako signs t
 manifest with the provided secret key.</p>
 <p>See <a href="../versions/">Versions</a> for information on how Tako treats <code>&lt;version&gt;</code>. For
 proper ordering, versions should start with a digit: use <code>1.0.0</code> rather than
-<code>v1.0.0</code>. The version must not contain spaces.
-<!-- TODO: This is not actually verified and would corrupt the manifest. --></p>
+<code>v1.0.0</code>. The version must not contain spaces.</p>
+<!-- TODO: This is not actually verified and would corrupt the manifest. -->
+
 <p>The secret key which is used to sign the manifest can be provided in thee ways:</p>
 <ul>
 <li>By setting the <code>TAKO_SECRET_KEY</code> environment variable.</li>
@@ -388,12 +439,12 @@ proper ordering, versions should start with a digit: use <code>1.0.0</code> rath
 </ul>
 <p>Command-line options take precedence over the environment variable. A key pair
 can be generated with <a href="../tako-gen-key/"><code>tako gen-key</code></a>.</p>
-<h2 id="options">Options</h2>
-<h3 id="-k-key-ltkeygt"><code>-k</code> <code>--key &lt;key&gt;</code></h3>
+<h2 id="options">Options<a class="headerlink" href="#options">&para;</a></h2>
+<h3 id="-k-key-key"><code>-k</code> <code>--key &lt;key&gt;</code><a class="headerlink" href="#-k-key-key">&para;</a></h3>
 <p>Provide the secret key <code>&lt;key&gt;</code> directly.</p>
-<h3 id="-f-key-file-ltfilegt"><code>-f</code> <code>--key-file &lt;file&gt;</code></h3>
+<h3 id="-f-key-file-file"><code>-f</code> <code>--key-file &lt;file&gt;</code><a class="headerlink" href="#-f-key-file-file">&para;</a></h3>
 <p>Read the secret key from <code>&lt;file&gt;</code>.</p>
-<h3 id="-o-output-ltdirgt"><code>-o</code> <code>--output &lt;dir&gt;</code></h3>
+<h3 id="-o-output-dir"><code>-o</code> <code>--output &lt;dir&gt;</code><a class="headerlink" href="#-o-output-dir">&para;</a></h3>
 <p>Specifies the server directory. <code>&lt;dir&gt;</code> must exist. This must be a path on the
 file system, uris are not supported. Tako will create <code>&lt;dir&gt;/manifest</code> and
 <code>&lt;dir&gt;/store</code> if they do not exist yet.</p>
@@ -407,18 +458,26 @@ file system, uris are not supported. Tako will create <code>&lt;dir&gt;/manifest
       <nav>
         <ul>
         <li class="toc-section"><a href="..">Overview</a></li>
-          <li class="toc-section"><a href="../downloading-images/">User Guide</a></li>
-          <li class="toc-chapter
+          <li class="toc-section
+            "><a href="../downloading-images/">User Guide</a></li>
+          
+            <li class="toc-chapter
               "><a href="../downloading-images/">Downloading Images</a></li>
+            
             <li class="toc-chapter
               "><a href="../distributing-images/">Distributing Images</a></li>
+            
             <li class="toc-chapter
               "><a href="../configuration/">Configuration</a></li>
+            
             <li class="toc-chapter
               "><a href="../versions/">Versions</a></li>
-            <li class="toc-section"><a href="../tako-fetch/">Reference</a></li>
-          <li class="toc-chapter
+            <li class="toc-section
+            "><a href="../tako-fetch/">Reference</a></li>
+          
+            <li class="toc-chapter
               "><a href="../tako-fetch/">tako fetch</a></li>
+            
             <li class="toc-chapter
                current"><a href="./">tako store</a></li>
             <li><ul>
@@ -426,10 +485,13 @@ file system, uris are not supported. Tako will create <code>&lt;dir&gt;/manifest
                 <li class="toc-heading"><a href="#description">Description</a></li>
                 <li class="toc-heading"><a href="#options">Options</a></li>
                 </ul></li>
-               <li class="toc-chapter
+               
+            <li class="toc-chapter
               "><a href="../tako-gen-key/">tako gen-key</a></li>
-            <li class="toc-section"><a href="../manifest-format/">Internals</a></li>
-          <li class="toc-chapter
+            <li class="toc-section
+            "><a href="../manifest-format/">Internals</a></li>
+          
+            <li class="toc-chapter
               "><a href="../manifest-format/">Manifest Format</a></li>
             </ul>
       </nav>

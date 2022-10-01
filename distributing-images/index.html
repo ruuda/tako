@@ -10,7 +10,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Distributing Images — Tako</title>
-  <link href="https://fonts.googleapis.com/css?family=Roboto+Mono:400,500" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css?family=Roboto+Mono:400,500,400i" rel="stylesheet">
   <style>
   /* The Inter font family, see https://rsms.me/inter.
      https://rsms.me/inter/#faq-cdn suggests that linking these files directly is fine.
@@ -110,15 +110,32 @@
     font-weight: 600;
     font-size: 1rem;
     color: #444;
+    position: relative;
   }
   h1 {
     font-size: 2rem;
     margin-bottom: 2.1rem;
+    line-height: 2.42rem;
+    margin-top: -0.35rem;
+    margin-bottom: 1.75rem;
   }
   h2 {
     font-size: 1.42rem;
     margin-top: 3.5rem;
     margin-bottom: 1.6rem;
+  }
+  .headerlink {
+    position: absolute;
+    left: -0.9em;
+    width: 1em;
+    opacity: 0.0;
+    transition: opacity 0.2s ease-in;
+  }
+  /* Don't show the link for h1, usually you only have a single h1 at the top
+     of the page, so it doesn't make much sense to add an anchor there, and with
+     the larger font size, it doesn't fit in a narrow viewport. */
+  h2:hover .headerlink, h3:hover .headerlink {
+    opacity: 1.0;
   }
   code {
     font-family: 'Roboto Mono', monospace;
@@ -148,7 +165,9 @@
   a > code,
   h3 > code,
   li > code,
-  td > code {
+  td > code,
+  dt > code,
+  dd > code {
     background-color: #f0f0f0;
     padding: 0.13rem;
     padding-left: 0.3rem;
@@ -167,7 +186,7 @@
     color: #36d;
     text-decoration: none;
   }
-  p, ul, ol, pre, table {
+  p, ul, ol, dl, pre, table {
     /* Same space as line height, leave exactly one line blank. */
     margin-bottom: 1.7rem;
   }
@@ -185,6 +204,10 @@
     margin-right: 1.41rem;
     color: #555;
   }
+  code .k { color: #36d; }
+  code .kt, code .nb { color: #d36; }
+  code .c1, code .cm { color: #d36; font-style: italic; }
+  code .s { color: #c43; }
   ul, ol {
     list-style-type: none;
     counter-reset: item;
@@ -202,6 +225,14 @@
     display: block;
     padding-top: 1em;
     padding-bottom: 1em;
+  }
+  dl {
+    display: grid;
+    grid-template-columns: 1fr 4fr;
+    grid-column-gap: 2em;
+  }
+  dl dt {
+    text-align: right;
   }
   #main ul li:before {
     color: #555;
@@ -252,6 +283,7 @@
     grid-area: 1 / 1 / 2 / 3;
     border-right: 1px solid #eee;
     background-color: #fafafa;
+    color: #78a;
   }
   aside nav {
     margin-top: 9rem;
@@ -262,7 +294,7 @@
     margin-right: -1px;
   }
   aside a {
-    color: #78a;
+    color: inherit;
   }
   aside .toc-section {
     font-weight: 700;
@@ -270,14 +302,18 @@
   aside ul {
     margin-bottom: 0;
   }
+  aside li {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
   aside li ul {
     padding-top: 0.6rem;
     padding-bottom: 1.1rem;
   }
   aside li.toc-section {
-    padding-top: 1.7rem;
+    margin-top: 1.7rem;
   }
-  aside li.toc-section a {
+  aside li.toc-section {
     color: #36d;
   }
   aside li.current, aside li ul {
@@ -285,11 +321,12 @@
     padding-left: 1em;
     margin-left: -1em;
   }
-  aside .current a {
+  aside li.toc-chapter.current {
     font-weight: 600;
   }
   aside li.toc-heading {
     padding-left: 1em;
+    padding-right: 0.3em;
   }
 
   @media(max-width: 63rem)
@@ -315,17 +352,30 @@
     aside {
       border-top: 1px solid #eee;
       border-right: 0px none;
+      padding-top: 1.7em;
     }
     aside nav {
       margin-left: 4em;
       margin-top: 1.7em;
+      margin-right: 0;
       float: none;
+      width: auto;
     }
     #main {
       padding-bottom: 1.7em;
     }
+    /* Now that the TOC is full-width, adding the border on the right to
+       highlight the active page is not as clear anymore, it can be far away.
+       The current chapter is still in boldface, but that does not work for
+       section indexes. So point a guillemet at it as well. */
     aside li.current, aside li ul {
       border-right: 0px none;
+      position: relative;
+    }
+    aside li.current:before {
+      content: '\203a';
+      position: absolute;
+      left: 0;
     }
   }
 
@@ -359,12 +409,12 @@
     <div id="main">
       <nav id="breadcrumbs">
         <a href="..">Tako</a>
-        › <a href="..">User Guide</a>
-  › <a href="./">Distributing Images</a>
-  <a id="repo-link" href="https://github.com/ruuda/tako/">GitHub</a>
+         › <a href="../downloading-images/">User Guide</a> 
+         › <a href="./">Distributing Images</a> 
+        <a id="repo-link" href="https://github.com/ruuda/tako/">GitHub</a>
       </nav>
       <article>
-        <h1 id="distributing-images">Distributing Images</h1>
+        <h1 id="distributing-images">Distributing Images<a class="headerlink" href="#distributing-images">&para;</a></h1>
 <p>A Tako server is a regular http server, with a particular directory layout.
 The origin uri points to a directory that contains the manifest file and the
 image store.</p>
@@ -378,7 +428,7 @@ image store.</p>
 <p>Images can be added to the directory with <a href="../tako-store/"><code>tako store</code></a>. The
 most convenient way to maintain the server directory is to have a local copy
 that Tako can act on, and to sync that to a server.</p>
-<h2 id="immutable-images">Immutable Images</h2>
+<h2 id="immutable-images">Immutable Images<a class="headerlink" href="#immutable-images">&para;</a></h2>
 <p>Tako is designed as an append-only system where images are immutable. Changing
 an image is not possible: publish it as a new version instead. The Tako client
 <a href="../tako-fetch/"><code>tako fetch</code></a> stores a copy of the manifest locally, and when it
@@ -394,8 +444,8 @@ will fail. This is generally not an issue if a newer compatible version is
 available. If this is not the case, you can configure the server to serve “410
 Gone” on the url of the removed image. In the future — the following has not yet
 been implemented — if <a href="../tako-fetch/"><code>tako fetch</code></a> encounters a 410 it will not
-fail, but instead select an earlier compatible version and try again.
-<!-- TODO: Implement handling of 410 at some point. --></p>
+fail, but instead select an earlier compatible version and try again.</p>
+<!-- TODO: Implement handling of 410 at some point. -->
       </article>
       <nav id="nav-prev-next">
         <a id="nav-prev" href="../downloading-images/" title="Downloading Images">Previous</a>
@@ -406,27 +456,38 @@ fail, but instead select an earlier compatible version and try again.
       <nav>
         <ul>
         <li class="toc-section"><a href="..">Overview</a></li>
-          <li class="toc-section"><a href="../downloading-images/">User Guide</a></li>
-          <li class="toc-chapter
+          <li class="toc-section
+            "><a href="../downloading-images/">User Guide</a></li>
+          
+            <li class="toc-chapter
               "><a href="../downloading-images/">Downloading Images</a></li>
+            
             <li class="toc-chapter
                current"><a href="./">Distributing Images</a></li>
             <li><ul>
                 <li class="toc-heading"><a href="#immutable-images">Immutable Images</a></li>
                 </ul></li>
-               <li class="toc-chapter
+               
+            <li class="toc-chapter
               "><a href="../configuration/">Configuration</a></li>
+            
             <li class="toc-chapter
               "><a href="../versions/">Versions</a></li>
-            <li class="toc-section"><a href="../tako-fetch/">Reference</a></li>
-          <li class="toc-chapter
+            <li class="toc-section
+            "><a href="../tako-fetch/">Reference</a></li>
+          
+            <li class="toc-chapter
               "><a href="../tako-fetch/">tako fetch</a></li>
+            
             <li class="toc-chapter
               "><a href="../tako-store/">tako store</a></li>
+            
             <li class="toc-chapter
               "><a href="../tako-gen-key/">tako gen-key</a></li>
-            <li class="toc-section"><a href="../manifest-format/">Internals</a></li>
-          <li class="toc-chapter
+            <li class="toc-section
+            "><a href="../manifest-format/">Internals</a></li>
+          
+            <li class="toc-chapter
               "><a href="../manifest-format/">Manifest Format</a></li>
             </ul>
       </nav>

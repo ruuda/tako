@@ -17,7 +17,7 @@ A copy of the License has been included in the root of the repository.
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% if page.title %}{{ page.title }} — {% endif %}{{ config.site_name }}</title>
-  <link href="https://fonts.googleapis.com/css?family=Roboto+Mono:400,500" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css?family=Roboto+Mono:400,500,400i" rel="stylesheet">
   <style>
   /* The Inter font family, see https://rsms.me/inter.
      https://rsms.me/inter/#faq-cdn suggests that linking these files directly is fine.
@@ -117,15 +117,32 @@ A copy of the License has been included in the root of the repository.
     font-weight: 600;
     font-size: 1rem;
     color: #444;
+    position: relative;
   }
   h1 {
     font-size: 2rem;
     margin-bottom: 2.1rem;
+    line-height: 2.42rem;
+    margin-top: -0.35rem;
+    margin-bottom: 1.75rem;
   }
   h2 {
     font-size: 1.42rem;
     margin-top: 3.5rem;
     margin-bottom: 1.6rem;
+  }
+  .headerlink {
+    position: absolute;
+    left: -0.9em;
+    width: 1em;
+    opacity: 0.0;
+    transition: opacity 0.2s ease-in;
+  }
+  /* Don't show the link for h1, usually you only have a single h1 at the top
+     of the page, so it doesn't make much sense to add an anchor there, and with
+     the larger font size, it doesn't fit in a narrow viewport. */
+  h2:hover .headerlink, h3:hover .headerlink {
+    opacity: 1.0;
   }
   code {
     font-family: 'Roboto Mono', monospace;
@@ -155,7 +172,9 @@ A copy of the License has been included in the root of the repository.
   a > code,
   h3 > code,
   li > code,
-  td > code {
+  td > code,
+  dt > code,
+  dd > code {
     background-color: #f0f0f0;
     padding: 0.13rem;
     padding-left: 0.3rem;
@@ -174,7 +193,7 @@ A copy of the License has been included in the root of the repository.
     color: #36d;
     text-decoration: none;
   }
-  p, ul, ol, pre, table {
+  p, ul, ol, dl, pre, table {
     /* Same space as line height, leave exactly one line blank. */
     margin-bottom: 1.7rem;
   }
@@ -192,6 +211,10 @@ A copy of the License has been included in the root of the repository.
     margin-right: 1.41rem;
     color: #555;
   }
+  code .k { color: #36d; }
+  code .kt, code .nb { color: #d36; }
+  code .c1, code .cm { color: #d36; font-style: italic; }
+  code .s { color: #c43; }
   ul, ol {
     list-style-type: none;
     counter-reset: item;
@@ -209,6 +232,14 @@ A copy of the License has been included in the root of the repository.
     display: block;
     padding-top: 1em;
     padding-bottom: 1em;
+  }
+  dl {
+    display: grid;
+    grid-template-columns: 1fr 4fr;
+    grid-column-gap: 2em;
+  }
+  dl dt {
+    text-align: right;
   }
   #main ul li:before {
     color: #555;
@@ -259,6 +290,7 @@ A copy of the License has been included in the root of the repository.
     grid-area: 1 / 1 / 2 / 3;
     border-right: 1px solid #eee;
     background-color: #fafafa;
+    color: #78a;
   }
   aside nav {
     margin-top: 9rem;
@@ -269,7 +301,7 @@ A copy of the License has been included in the root of the repository.
     margin-right: -1px;
   }
   aside a {
-    color: #78a;
+    color: inherit;
   }
   aside .toc-section {
     font-weight: 700;
@@ -277,14 +309,18 @@ A copy of the License has been included in the root of the repository.
   aside ul {
     margin-bottom: 0;
   }
+  aside li {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
   aside li ul {
     padding-top: 0.6rem;
     padding-bottom: 1.1rem;
   }
   aside li.toc-section {
-    padding-top: 1.7rem;
+    margin-top: 1.7rem;
   }
-  aside li.toc-section a {
+  aside li.toc-section {
     color: #36d;
   }
   aside li.current, aside li ul {
@@ -292,11 +328,12 @@ A copy of the License has been included in the root of the repository.
     padding-left: 1em;
     margin-left: -1em;
   }
-  aside .current a {
+  aside li.toc-chapter.current {
     font-weight: 600;
   }
   aside li.toc-heading {
     padding-left: 1em;
+    padding-right: 0.3em;
   }
 
   @media(max-width: 63rem)
@@ -322,17 +359,30 @@ A copy of the License has been included in the root of the repository.
     aside {
       border-top: 1px solid #eee;
       border-right: 0px none;
+      padding-top: 1.7em;
     }
     aside nav {
       margin-left: 4em;
       margin-top: 1.7em;
+      margin-right: 0;
       float: none;
+      width: auto;
     }
     #main {
       padding-bottom: 1.7em;
     }
+    /* Now that the TOC is full-width, adding the border on the right to
+       highlight the active page is not as clear anymore, it can be far away.
+       The current chapter is still in boldface, but that does not work for
+       section indexes. So point a guillemet at it as well. */
     aside li.current, aside li ul {
       border-right: 0px none;
+      position: relative;
+    }
+    aside li.current:before {
+      content: '\203a';
+      position: absolute;
+      left: 0;
     }
   }
 
@@ -366,9 +416,8 @@ A copy of the License has been included in the root of the repository.
     <div id="main">
       <nav id="breadcrumbs">
         <a href="{{ config.site_url|url }}">{{ config.site_name }}</a>
-        {% for nav_item in nav -%}
-          {% include "nav.html" -%}
-        {% endfor -%}
+        {% if page.parent %} › <a href="{{ page.parent.children[0].url|url }}">{{ page.parent.title }}</a> {% endif %}
+        {% if not page.is_index or not page.parent %} › <a href="{{ page.url|url }}">{{ page.title }}</a> {% endif %}
         <a id="repo-link" href="{{ config.repo_url|url }}">GitHub</a>
       </nav>
       <article>
@@ -390,8 +439,11 @@ A copy of the License has been included in the root of the repository.
         <ul>
         {% for section in nav -%}
           {% if section.children -%}
-          <li class="toc-section"><a href="{{ section.children[0].url|url }}">{{ section.title }}</a></li>
+          <li class="toc-section
+            {% if section.active and page.is_index %} current{% endif -%}
+          "><a href="{{ section.children[0].url|url }}">{{ section.title }}</a></li>
           {% for chapter in section.children -%}
+          {% if not chapter.is_index %}
             <li class="toc-chapter
               {% if chapter.active %} current{% endif -%}
             "><a href="{{ chapter.url|url }}">{{ chapter.title }}</a></li>
@@ -406,6 +458,7 @@ A copy of the License has been included in the root of the repository.
                {% endif -%}
             {% endfor -%}
             {% endif -%}
+          {% endif -%}
           {% endfor -%}
           {% else -%}
           <li class="toc-section"><a href="{{ section.url|url }}">{{ section.title }}</a></li>
