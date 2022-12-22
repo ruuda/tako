@@ -1,53 +1,53 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
-         <loc>None</loc>
-         <lastmod>2022-10-01</lastmod>
+         <loc>https://docs.ruuda.nl/tako/</loc>
+         <lastmod>1980-01-01</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>None</loc>
-         <lastmod>2022-10-01</lastmod>
+         <loc>https://docs.ruuda.nl/tako/configuration/</loc>
+         <lastmod>1980-01-01</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>None</loc>
-         <lastmod>2022-10-01</lastmod>
+         <loc>https://docs.ruuda.nl/tako/distributing-images/</loc>
+         <lastmod>1980-01-01</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>None</loc>
-         <lastmod>2022-10-01</lastmod>
+         <loc>https://docs.ruuda.nl/tako/downloading-images/</loc>
+         <lastmod>1980-01-01</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>None</loc>
-         <lastmod>2022-10-01</lastmod>
+         <loc>https://docs.ruuda.nl/tako/manifest-format/</loc>
+         <lastmod>1980-01-01</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>None</loc>
-         <lastmod>2022-10-01</lastmod>
+         <loc>https://docs.ruuda.nl/tako/tako-fetch/</loc>
+         <lastmod>1980-01-01</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>None</loc>
-         <lastmod>2022-10-01</lastmod>
+         <loc>https://docs.ruuda.nl/tako/tako-gen-key/</loc>
+         <lastmod>1980-01-01</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>None</loc>
-         <lastmod>2022-10-01</lastmod>
+         <loc>https://docs.ruuda.nl/tako/tako-store/</loc>
+         <lastmod>1980-01-01</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>None</loc>
-         <lastmod>2022-10-01</lastmod>
+         <loc>https://docs.ruuda.nl/tako/versions/</loc>
+         <lastmod>1980-01-01</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
-         <loc>None</loc>
-         <lastmod>2022-10-01</lastmod>
+         <loc>https://docs.ruuda.nl/tako/theme/</loc>
+         <lastmod>1980-01-01</lastmod>
          <changefreq>daily</changefreq>
     </url>
 </urlset>
