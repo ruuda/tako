@@ -1,4 +1,5 @@
 site_name: Tako
+site_url: https://docs.ruuda.nl/tako/
 repo_url: https://github.com/ruuda/tako
 strict: true
 
